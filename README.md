@@ -74,13 +74,13 @@ I have written 2 sets of instructions for how to use 'lambda-edge-language-regio
           CookiesConfig:
             CookieBehavior: none
 
-    CloudFrontDistribution:
-        Type: AWS::CloudFront::Distribution
-        Properties:
-        DistributionConfig:
-            # ...all your other distribution config
-            CachePolicyId: !Ref ViewerRequestPolicy
-            OriginRequestPolicyId: !Ref OriginRequestPolicy
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        # ...all your other distribution config
+        CachePolicyId: !Ref ViewerRequestPolicy
+        OriginRequestPolicyId: !Ref OriginRequestPolicy
 ```
 
 ## Relevant articles and documentation
