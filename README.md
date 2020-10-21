@@ -1,21 +1,35 @@
 # lambda-edge-language-region-redirect
 
+## What does it do?
+
+Redirects users to localised content.
+
 The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'
 
-# How it works
+### Usercases
 
-- Viewer requests will have cache params ('Accept-Language' and 'CloudFront-Viewer-Country' headers) checked
-- Lambda@edge will redirect origin requests to approved language-regions
+English speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/en-eu/*
 
-# How to use
+French speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/fr-eu/*
+
+English speaking user browsing from within Great Britain will be redirected to https://<span></span>your-site.com/en-gb/*
+
+French speaking user browsing from within Great Britain will be redirected to https://<span></span>your-site.com/fr-gb/*
+
+## How it works
+
+- Viewer requests have cache parameters checked ('Accept-Language' and 'CloudFront-Viewer-Country' headers)
+- Lambda@edge redirects origin requests to approved language-regions URIs
+
+## How to use
 
 I have written 2 sets of instructions for how to use 'lambda-edge-language-region-redirect'. Firstly. how to get it set up quickly through AWS Console. Secondly, for long-lasting systems to use clouidformation.
 
-## AWS Console
+### AWS Console
 
 ...Currently updating.
 
-## Cloudformation (yaml)
+### Cloudformation (yaml)
 
 ```yml
   ViewerRequestPolicy:
@@ -66,8 +80,6 @@ I have written 2 sets of instructions for how to use 'lambda-edge-language-regio
             CachePolicyId: !Ref ViewerRequestPolicy
             OriginRequestPolicyId: !Ref OriginRequestPolicy
 ```
-
-
 
 ## Relevant articles and documentation
 - https://docs.aws.amazon.com/lambda/latest/dg/lambda-edge.html
