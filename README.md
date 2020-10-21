@@ -1,4 +1,4 @@
-# lambda-edge-language-region-redirect
+# Lambda@edge Language-Region Redirect
 
 THIS REPO IS CURRENTLY A WORK IN PROGRESS.
 
