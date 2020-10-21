@@ -55,24 +55,18 @@ I have written 2 sets of instructions for how to use 'lambda-edge-language-regio
             CookieBehavior: none
 
   OriginRequestPolicy:
-    Type: AWS::CloudFront::CachePolicy
+    Type: AWS::CloudFront::OriginRequestPolicy
     Properties:
-      CachePolicyConfig:
+      OriginRequestPolicyConfig:
         Comment: "Origin request policy for lambda-edge-language-region-redirect"
-        DefaultTTL: 86400
-        MaxTTL: 31536000
-        MinTTL: 1
         Name: 'lambda-edge-language-region-redirect-origin-request-policy'
-        ParametersInCacheKeyAndForwardedToOrigin:
-          EnableAcceptEncodingBrotli: true
-          EnableAcceptEncodingGzip: true
-          HeadersConfig:
-            HeaderBehavior: whitelist
-            Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
-          QueryStringsConfig:
-            QueryStringBehavior: none
-          CookiesConfig:
-            CookieBehavior: none
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
+        QueryStringsConfig:
+          QueryStringBehavior: none
+        CookiesConfig:
+          CookieBehavior: none
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
