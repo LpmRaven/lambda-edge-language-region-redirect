@@ -19,6 +19,7 @@ The language-region-redirect lambda@edge will redirect users to approved Web URI
 
 - Viewer requests have cache parameters checked ('Accept-Language' and 'CloudFront-Viewer-Country' headers)
 - Lambda@edge redirects origin requests to approved language-regions URIs
+- Any changes to your folked repo aws-deployment branch will be deployed
 
 ## How to use
 

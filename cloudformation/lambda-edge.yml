@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Static Website SSL Certificate. IMPORTANT! Must be deployed in US East (N. Virginia) Region (us-east-1).
+Description: Lambda of lambda-edge-language-region-redirect GitHub repository
 
 Parameters:
   ProjectName:
