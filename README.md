@@ -24,6 +24,9 @@ The language-region-redirect lambda@edge will redirect users to approved Web URI
 
 I have written cloudformation for long-lasting systems. This includes codepipeline for automated deployment.
 
+1. Fork this repo
+2. Follow Cloudformation steps
+
 ### Cloudformation (yaml)
 
 1. Copy `cloudformation/codepipeline.yml`
