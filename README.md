@@ -8,6 +8,8 @@ Redirects users to localised content.
 
 The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'
 
+- All languages are in iso-639-1 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [iso-639-1 repo](https://github.com/meikidd/iso-639-1).
+- All regions are in ISO 3166-1 alpha-2 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [country-list repo](https://github.com/fannarsh/country-list).
 ### Usercases
 
 - English speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/en-eu/*
@@ -26,7 +28,8 @@ The language-region-redirect lambda@edge will redirect users to approved Web URI
 I have written cloudformation for long-lasting systems. This includes codepipeline for automated deployment.
 
 1. Fork this repo
-2. Follow Cloudformation steps
+2. Follow Cloudformation steps below
+3. Configure by following the Config changes and updates` steps below
 
 ### Cloudformation (yaml)
 
@@ -36,6 +39,11 @@ I have written cloudformation for long-lasting systems. This includes codepipeli
 4. Update your existing cloudfront cloudformation to include the contents of `cloudformation/cloudfront.yml`
 
 Note: If you do not have existing cloudfront cloudformation, you will need to make changes to `cloudformation/cloudfront.yml` at the `# ...all your other distribution config` comment.
+
+### Config changes and updates
+
+1. Make config changes inside your folked repo `this file`
+2. Push changes to your repo `aws-deployment` branch (or the branch that you set as GitHubBranch when creating the codepipeline stack)
 
 ## Relevant articles and documentation
 - https://docs.aws.amazon.com/lambda/latest/dg/lambda-edge.html
