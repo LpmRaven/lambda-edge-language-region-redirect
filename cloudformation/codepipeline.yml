@@ -1,0 +1,288 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CodePipeline and CodeBuild for continuous delivery of lambda-edge-language-region-redirect GitHub repository
+
+Parameters:
+  ProjectName:
+    Description: A unique identifier to allow multiple deployments of the cloudformation (MUST BE THE SAME FOR ENTIRE STACK)
+    Type: String
+  GitHubUser:
+    Type: String
+    Description: GitHub User
+    Default: "my-github-username"
+  GitHubRepo:
+    Type: String
+    Description: GitHub Repo to pull from. Only the Name. not the URL
+    Default: "my-github-repo-name"
+  GitHubBranch:
+    Type: String
+    Description: GitHub Branch
+    Default: "aws-deployment"
+  GitHubToken:
+    NoEcho: true
+    Type: String
+    Description: Secret. It might look something like 9b189a1654643522561f7b3ebd44a1531a4287af OAuthToken with access to Repo. Go to https://github.com/settings/tokens
+  BuildType:
+    Type: String
+    Default: "LINUX_CONTAINER"
+    Description: The build container type to use for building the app
+  BuildComputeType:
+    Type: String
+    Default: "BUILD_GENERAL1_SMALL"
+    Description: The build compute type to use for building the app
+  BuildImage:
+    Type: String
+    Default: "aws/codebuild/standard:3.0"
+    Description: The build image to use for building the app
+
+Resources:
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub ${ProjectName}-language-region-redirect-codebuild-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - logs:DescribeLogStreams
+                Resource: "arn:aws:logs:*:*:*"
+                Effect: Allow
+              - Action:
+                - s3:PutObject
+                - s3:ListBucket
+                - s3:DeleteObject
+                - s3:GetBucketLocation
+                - s3:GetObject
+                - s3:GetObjectVersion
+                Effect: Allow
+                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: !Sub ${ProjectName}-language-region-redirect-codepipeline-policy
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - codebuild:*
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
+                Effect: Allow
+              - Action:
+                  - s3:*
+                  - cloudformation:*
+                  - iam:PassRole
+                Resource: "*"
+                Effect: Allow
+            Version: '2012-10-17'
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: cloudformation-service
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - codebuild:*
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
+                Effect: Allow
+              - Action:
+                  - cloudformation:*
+                  - iam:PassRole
+                  - iam:getRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:UpdateRole
+                  - iam:DeleteRole
+                  - iam:ListRoles
+                  - iam:PutRolePolicy
+                  - iam:GetRole
+                  - iam:DeleteRolePolicy
+                  - lambda:CreateFunction
+                  - lambda:DeleteFunction
+                  - lambda:PutFunctionConcurrency
+                  - lambda:GetFunctionConfiguration
+                  - lambda:GetFunction
+                  - lambda:AddPermission
+                  - lambda:UpdateFunctionCode
+                  - lambda:UpdateFunctionConfiguration
+                  - lambda:RemovePermission
+                  - events:*
+                  - logs:*
+                  - cloudwatch:*
+                Resource: "*"
+                Effect: Allow
+            Version: '2012-10-17'
+
+  PipelineBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+
+  CodeBuild:
+    Type: AWS::CodeBuild::Project
+    DependsOn: CodeBuildRole
+    Properties:
+      Name: !Sub ${ProjectName}-language-region-redirect-codebuild
+      Description: Deploy site to S3
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: !Ref BuildType
+        ComputeType: !Ref BuildComputeType
+        Image: !Ref BuildImage
+      TimeoutInMinutes: 10
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 12
+              commands:
+                - npm install -g yarn
+                - export NODE_ENV=production
+            pre_build:
+              commands:
+                - yarn install --production
+          artifacts:
+            type: zip
+            files:
+              - '**/*'
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn: CodePipelineRole
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineBucket
+      Name: !Sub ${ProjectName}-language-region-redirect-codepipeline
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - InputArtifacts: []
+              Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: '1'
+                Provider: GitHub
+              RunOrder: 1
+              Configuration:
+                Owner: !Ref GitHubUser
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Ref GitHubToken
+              OutputArtifacts:
+                - Name: SourceOutput
+        - Name: Build
+          Actions:
+            - Name: BuildAndTest
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuild
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+        - Name: LambdaDeploy
+          Actions:
+            - Name: CreateUpdateLambda
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub '${AWS::StackName}-lambda-edge'
+                TemplatePath: SourceOutput::cloudformation/lambda-edge.yml
+                ParameterOverrides: !Sub |
+                  {
+                    "ProjectName": "${ProjectName}",
+                    "DeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOutput", "ObjectKey"]}
+                  }
+              InputArtifacts:
+                - Name: SourceOutput
+                - Name: BuildOutput
+
+Outputs:
+  PipelineBucket:
+    Description: S3 bucket holding all the OutputArtifacts of any pipeline stage
+    Value: !Ref PipelineBucket
+    Export:
+      Name: !Sub '${ProjectName}-language-region-redirect-pipeline-artifacts-bucket'

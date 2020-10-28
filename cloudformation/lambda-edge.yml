@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Static Website SSL Certificate. IMPORTANT! Must be deployed in US East (N. Virginia) Region (us-east-1).
+
+Parameters:
+  ProjectName:
+    Description: A unique identifier to allow multiple deployments of the cloudformation (MUST BE THE SAME FOR ENTIRE STACK)
+    Type: String
+  DeploymentPackageKey:
+    Type: String
+    Description: An S3 object key pointing of a ZIP file, an archive of everything that is needed to run the Lambda function. It is the output of the Build stage of the pipeline. (SHOULD BE AUTO FILLED BY CODEPIPELINE)
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - "lambda.amazonaws.com"
+            - "edgelambda.amazonaws.com"
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: XRaynWriteAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                  - xray:GetSamplingStatisticSummaries
+                Resource: "*"
+        - PolicyName: CloudWatchWriteAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: "*"
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: LambdaRole
+    Properties:
+      FunctionName: !Ref "AWS::StackName"
+      Role: !GetAtt LambdaRole.Arn
+      Handler: handler.handler
+      Runtime: nodejs12.x
+      Timeout: 5
+      Code:
+        S3Bucket:
+          'Fn::ImportValue': !Sub '${ProjectName}-language-region-redirect-pipeline-artifacts-bucket'
+        S3Key: !Ref DeploymentPackageKey
+
+Outputs:
+  LambdaEdgeLanguageRegionRedirectArn:
+    Value: !Ref CertificateManagerCertificate
+    Description: Certificate for root domain
+    Export:
+      Name: !Sub "${ProjectName}:lambdaEdgeLanguageRegionRedirectArn"

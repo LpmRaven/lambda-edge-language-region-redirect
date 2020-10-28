@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cloudfront of lambda-edge-language-region-redirect GitHub repository
+
+Parameters:
+  ProjectName:
+    Description: A unique identifier to allow multiple deployments of the cloudformation (MUST BE THE SAME FOR ENTIRE STACK)
+    Type: String
+
+Resources:
+  ViewerRequestPolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: "Viewer request policy for lambda-edge-language-region-redirect"
+        DefaultTTL: 86400
+        MaxTTL: 31536000
+        MinTTL: 1
+        Name: 'lambda-edge-language-region-redirect-viewer-request-policy'
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
+          QueryStringsConfig:
+            QueryStringBehavior: none
+          CookiesConfig:
+            CookieBehavior: none
+
+  OriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Comment: "Origin request policy for lambda-edge-language-region-redirect"
+        Name: 'lambda-edge-language-region-redirect-origin-request-policy'
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
+        QueryStringsConfig:
+          QueryStringBehavior: none
+        CookiesConfig:
+          CookieBehavior: none
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        # ...all your other distribution config
+        DefaultCacheBehavior:
+          LambdaFunctionAssociations:
+            EventType: origin-request
+            IncludeBody: false
+            LambdaFunctionARN:
+              Fn::ImportValue:
+                !Sub "${ProjectName}:lambdaEdgeLanguageRegionRedirectArn"
+          CachePolicyId: !Ref ViewerRequestPolicy
+          OriginRequestPolicyId: !Ref OriginRequestPolicy
