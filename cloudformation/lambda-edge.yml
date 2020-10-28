@@ -67,7 +67,7 @@ Resources:
 
 Outputs:
   LambdaEdgeLanguageRegionRedirectArn:
-    Value: !Ref CertificateManagerCertificate
-    Description: Certificate for root domain
+    Value: !Ref LambdaFunction
+    Description: Lambda@edge language-region-redirect ARN
     Export:
       Name: !Sub "${ProjectName}:lambdaEdgeLanguageRegionRedirectArn"
