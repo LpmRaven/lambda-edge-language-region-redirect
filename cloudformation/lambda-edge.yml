@@ -70,4 +70,4 @@ Outputs:
     Value: !Ref LambdaFunction
     Description: Lambda@edge language-region-redirect ARN
     Export:
-      Name: !Sub "${ProjectName}:lambdaEdgeLanguageRegionRedirectArn"
+      Name: !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"

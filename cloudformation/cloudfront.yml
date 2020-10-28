@@ -52,6 +52,6 @@ Resources:
             IncludeBody: false
             LambdaFunctionARN:
               Fn::ImportValue:
-                !Sub "${ProjectName}:lambdaEdgeLanguageRegionRedirectArn"
+                !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
           CachePolicyId: !Ref ViewerRequestPolicy
           OriginRequestPolicyId: !Ref OriginRequestPolicy
