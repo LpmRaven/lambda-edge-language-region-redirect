@@ -8,8 +8,7 @@ Redirects users to localised content.
 
 The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'
 
-- All languages are in iso-639-1 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [iso-639-1 repo](https://github.com/meikidd/iso-639-1).
-- All regions are in ISO 3166-1 alpha-2 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [country-list repo](https://github.com/fannarsh/country-list).
+
 ### Usercases
 
 - English speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/en-eu/*
@@ -22,6 +21,9 @@ The language-region-redirect lambda@edge will redirect users to approved Web URI
 - Viewer requests have cache parameters checked ('Accept-Language' and 'CloudFront-Viewer-Country' headers)
 - Lambda@edge redirects origin requests to approved language-regions URIs
 - Any changes to your folked repo aws-deployment branch will be deployed
+
+- All languages are in ISO 639-1 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [iso-639-1 repo](https://github.com/meikidd/iso-639-1).
+- All regions are in ISO 3166-1 alpha-2 format (as used for [hreflang attributes](https://support.google.com/webmasters/answer/189077?hl=en)) from the [country-list repo](https://github.com/fannarsh/country-list).
 
 ## How to use
 
