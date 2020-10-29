@@ -170,6 +170,8 @@ Resources:
                   - lambda:UpdateFunctionCode
                   - lambda:UpdateFunctionConfiguration
                   - lambda:RemovePermission
+                  - lambda:ListVersionsByFunction
+                  - lambda:PublishVersion
                   - events:*
                   - logs:*
                   - cloudwatch:*

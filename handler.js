@@ -12,7 +12,7 @@ const getCustomResponseWithUrl = url => ({
     },
 });
 
-exports.handler = async (event) => {
+exports.handler = (event, context, callback) => {
     try {
         const request = event.Records[0].cf.request;
         const headers = request.headers;
@@ -35,10 +35,10 @@ exports.handler = async (event) => {
             // }
 
             //return response;
-            return request;
+            callback(null, request);
 
         } else {
-            return request;
+            callback(null, request);
         }
 
     } catch (err) {
