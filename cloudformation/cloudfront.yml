@@ -15,13 +15,15 @@ Resources:
         DefaultTTL: 86400
         MaxTTL: 31536000
         MinTTL: 1
-        Name: 'lambda-edge-language-region-redirect-viewer-request-policy'
+        Name: !Sub "${ProjectName}-language-region-viewer-request-policy"
         ParametersInCacheKeyAndForwardedToOrigin:
           EnableAcceptEncodingBrotli: true
           EnableAcceptEncodingGzip: true
           HeadersConfig:
             HeaderBehavior: whitelist
-            Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
+            Headers:
+              - Accept-Language
+              - CloudFront-Viewer-Country
           QueryStringsConfig:
             QueryStringBehavior: none
           CookiesConfig:
@@ -32,10 +34,12 @@ Resources:
     Properties:
       OriginRequestPolicyConfig:
         Comment: "Origin request policy for lambda-edge-language-region-redirect"
-        Name: 'lambda-edge-language-region-redirect-origin-request-policy'
+        Name: !Sub "${ProjectName}-language-region-origin-request-policy"
         HeadersConfig:
           HeaderBehavior: whitelist
-          Headers: [ 'Accept-Language', 'CloudFront-Viewer-Country' ]
+          Headers:
+            - Accept-Language
+            - CloudFront-Viewer-Country
         QueryStringsConfig:
           QueryStringBehavior: none
         CookiesConfig:
@@ -50,8 +54,11 @@ Resources:
           LambdaFunctionAssociations:
             EventType: origin-request
             IncludeBody: false
-            LambdaFunctionARN:
-              Fn::ImportValue:
-                !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
+            LambdaFunctionAssociations:
+              - EventType: origin-request
+                IncludeBody: false
+                LambdaFunctionARN:
+                  Fn::ImportValue:
+                    !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
           CachePolicyId: !Ref ViewerRequestPolicy
           OriginRequestPolicyId: !Ref OriginRequestPolicy
