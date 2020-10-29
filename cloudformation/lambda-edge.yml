@@ -65,9 +65,14 @@ Resources:
           'Fn::ImportValue': !Sub '${ProjectName}-language-region-redirect-pipeline-artifacts-bucket'
         S3Key: !Ref DeploymentPackageKey
 
+  VersionedLambdaFunction:
+    Type: 'AWS::Lambda::Version'
+    Properties:
+      FunctionName: !Ref LambdaFunction
+
 Outputs:
-  LambdaEdgeLanguageRegionRedirectArn:
-    Value: !GetAtt LambdaFunction.Arn
+  VersionedLambdaEdgeLanguageRegionRedirectArn:
+    Value: !Ref VersionedLambdaFunction
     Description: Lambda@edge language-region-redirect ARN
     Export:
       Name: !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
