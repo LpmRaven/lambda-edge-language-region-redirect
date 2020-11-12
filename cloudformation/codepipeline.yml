@@ -161,6 +161,7 @@ Resources:
                   - iam:PutRolePolicy
                   - iam:GetRole
                   - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
                   - lambda:CreateFunction
                   - lambda:DeleteFunction
                   - lambda:PutFunctionConcurrency

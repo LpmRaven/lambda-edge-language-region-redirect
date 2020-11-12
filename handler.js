@@ -17,15 +17,27 @@ exports.handler = (event, context, callback) => {
         const request = event.Records[0].cf.request;
         const headers = request.headers;
 
+        console.log('request', request);
         console.log("headers['cloudfront-viewer-country']", headers['cloudfront-viewer-country']);
-        console.log("headers['Accept-Language']", headers['Accept-Language']);
+        console.log("headers['accept-language']", headers['accept-language']);
 
-        if (headers['cloudfront-viewer-country'] && headers['cloudfront-viewer-country'][0] && headers['cloudfront-viewer-country'][0].value && headers['Accept-Language']) {
+        if (headers['cloudfront-viewer-country'] &&
+            headers['cloudfront-viewer-country'][0] &&
+            headers['cloudfront-viewer-country'][0].value &&
+            headers['accept-language'] &&
+            headers['accept-language'][0] &&
+            headers['accept-language'][0].value
+        ) {
             const uri = request.uri;
-            const countryCode = headers['cloudfront-viewer-country'][0].value;
-            const languageCode = headers['Accept-Language'][0].value
+            const countryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
+            const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
+            const languageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 1) : acceptLanguage;
 
+            if (languages.validate(languageCode) && countries.getName(countryCode)) {
+                const languageRegion = `${languageCode}-${countryCode}`;
 
+                console.log('languageRegion', languageRegion);
+            }
 
 
             // if (countryCode === 'TW') {

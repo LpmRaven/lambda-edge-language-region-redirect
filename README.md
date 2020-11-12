@@ -46,6 +46,7 @@ Note: If you do not have existing cloudfront cloudformation, you will need to ma
 
 1. Make config changes inside your folked repo `this file`
 2. Push changes to your repo `aws-deployment` branch (or the branch that you set as GitHubBranch when creating the codepipeline stack)
+3. re-deploy cloudfront cloudformation to update lambda version
 
 ## Relevant articles and documentation
 - https://docs.aws.amazon.com/lambda/latest/dg/lambda-edge.html
@@ -55,3 +56,5 @@ Note: If you do not have existing cloudfront cloudformation, you will need to ma
 - https://aws.amazon.com/blogs/networking-and-content-delivery/amazon-cloudfront-announces-cache-and-origin-request-policies/
 - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-cachepolicy.html
 - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
+- https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html
+- https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-authoring-functions.html
