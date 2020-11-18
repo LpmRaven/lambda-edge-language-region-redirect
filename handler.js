@@ -46,6 +46,7 @@ exports.handler = (event, context, callback) => {
             console.log("headers['cloudfront-viewer-country']", headers['cloudfront-viewer-country']);
             console.log("headers['accept-language']", headers['accept-language']);
             console.log("headers.cookie['language-region-override']", headers.cookie['language-region-override'])
+            console.log("headers['location']", headers['location']);
 
             if (
                 headers &&
@@ -55,6 +56,9 @@ exports.handler = (event, context, callback) => {
                 const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 4).toLowerCase();
                 const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 1).toLowerCase();
                 const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback)
+
+                console.log('languageRegion', languageRegion);
+                callback(null, request);
 
             } else if (
                 headers &&
@@ -70,8 +74,14 @@ exports.handler = (event, context, callback) => {
                 const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 1) : acceptLanguage;
                 const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallback, countryFallback)
 
+                console.log('languageRegion', languageRegion);
+                callback(null, request);
+
             } else {
                 const languageRegion = getLanguageRegion(languageFallback, countryFallback, languageFallback, countryFallback)
+
+                console.log('languageRegion', languageRegion);
+                callback(null, request);
 
             }
         }
