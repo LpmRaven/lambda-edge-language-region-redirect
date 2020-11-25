@@ -35,24 +35,21 @@ const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, 
 }
 
 exports.handler = (event, context, callback) => {
+    const request = event.Records[0].cf.request;
+
     try {
         if (checkRequiredConfig({ languageFallback, countryFallback })) { // country-config.js and language-config.js must be modified for your preferences
 
-            const request = event.Records[0].cf.request;
             const headers = request.headers;
             const uri = request.uri;
-
-            console.log('request', request);
-            console.log("headers['cloudfront-viewer-country']", headers['cloudfront-viewer-country']);
-            console.log("headers['accept-language']", headers['accept-language']);
-            console.log("headers.cookie['language-region-override']", headers.cookie['language-region-override'])
-            console.log("headers['location']", headers['location']);
 
             if (
                 headers &&
                 headers.cookie &&
                 headers.cookie['language-region-override']
             ) {
+                console.log("headers.cookie['language-region-override']", headers.cookie['language-region-override'])
+
                 const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 4).toLowerCase();
                 const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 1).toLowerCase();
                 const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback)
@@ -69,6 +66,9 @@ exports.handler = (event, context, callback) => {
                 headers['accept-language'][0] &&
                 headers['accept-language'][0].value
             ) {
+                console.log("headers['cloudfront-viewer-country']", headers['cloudfront-viewer-country']);
+                console.log("headers['accept-language']", headers['accept-language']);
+
                 const headerCountryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
                 const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
                 const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 1) : acceptLanguage;

@@ -58,3 +58,4 @@ Note: If you do not have existing cloudfront cloudformation, you will need to ma
 - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
 - https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html
 - https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-authoring-functions.html
+- https://gist.github.com/jed/56b1f58297d374572bc51c59394c7e7f#gistcomment-3536254
