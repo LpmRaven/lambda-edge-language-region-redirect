@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Cloudfront of lambda-edge-language-region-redirect GitHub repository
+Description: Cloudfront for lambda@edge - Liam Raven - 25/11/2020
 
 Parameters:
   ProjectName:
@@ -11,11 +11,11 @@ Resources:
     Type: AWS::CloudFront::CachePolicy
     Properties:
       CachePolicyConfig:
-        Comment: "Viewer request policy for lambda-edge-language-region-redirect"
+        Comment: "Viewer request policy to enable lambda@edge"
         DefaultTTL: 86400
         MaxTTL: 31536000
         MinTTL: 1
-        Name: !Sub "${ProjectName}-language-region-viewer-request-policy"
+        Name: !Sub "${ProjectName}-viewer-request-policy"
         ParametersInCacheKeyAndForwardedToOrigin:
           EnableAcceptEncodingBrotli: true
           EnableAcceptEncodingGzip: true
@@ -27,14 +27,16 @@ Resources:
           QueryStringsConfig:
             QueryStringBehavior: none
           CookiesConfig:
-            CookieBehavior: none
+            CookieBehavior: whitelist
+            Cookies:
+              - language-region-override
 
   OriginRequestPolicy:
     Type: AWS::CloudFront::OriginRequestPolicy
     Properties:
       OriginRequestPolicyConfig:
-        Comment: "Origin request policy for lambda-edge-language-region-redirect"
-        Name: !Sub "${ProjectName}-language-region-origin-request-policy"
+        Comment: "Origin request policy to enable lambda@edge"
+        Name: !Sub "${ProjectName}-origin-request-policy"
         HeadersConfig:
           HeaderBehavior: whitelist
           Headers:
@@ -43,7 +45,9 @@ Resources:
         QueryStringsConfig:
           QueryStringBehavior: none
         CookiesConfig:
-          CookieBehavior: none
+          CookieBehavior: whitelist
+          Cookies:
+            - language-region-override
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -52,13 +56,13 @@ Resources:
         # ...all your other distribution config
         DefaultCacheBehavior:
           LambdaFunctionAssociations:
-            EventType: origin-request
-            IncludeBody: false
-            LambdaFunctionAssociations:
-              - EventType: origin-request
-                IncludeBody: false
-                LambdaFunctionARN:
-                  Fn::ImportValue:
-                    !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
+            - EventType: origin-request
+              IncludeBody: false
+              LambdaFunctionARN:
+                Fn::ImportValue: !Sub "${ProjectName}-origin-request-lambda-arn"
+            - EventType: origin-response
+              IncludeBody: false
+              LambdaFunctionARN:
+                Fn::ImportValue: !Sub "${ProjectName}-origin-response-lambda-arn"
           CachePolicyId: !Ref ViewerRequestPolicy
           OriginRequestPolicyId: !Ref OriginRequestPolicy

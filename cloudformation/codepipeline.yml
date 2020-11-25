@@ -1,26 +1,31 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CodePipeline and CodeBuild for continuous delivery of lambda-edge-language-region-redirect GitHub repository
+Description: CodePipeline and CodeBuild for CI/CD of lambda@edge - Liam Raven - 25/11/2020
 
 Parameters:
   ProjectName:
-    Description: A unique identifier to allow multiple deployments of the cloudformation (MUST BE THE SAME FOR ENTIRE STACK)
+    Description: IMPORTANT! Must be consistent throughout all cloudformation deployments. eg. waterproofjack
     Type: String
   GitHubUser:
     Type: String
     Description: GitHub User
-    Default: "my-github-username"
-  GitHubRepo:
+  GitHubOriginRequestLambdaRepo:
     Type: String
-    Description: GitHub Repo to pull from. Only the Name. not the URL
-    Default: "my-github-repo-name"
-  GitHubBranch:
+    Description: GitHub Lambda@edge Repo to pull from. Only the Name. not the URL
+  GitHubOriginRequestLambdaBranch:
+    Type: String
+    Description: GitHub Branch
+    Default: "aws-deployment"
+  GitHubOriginResponseLambdaRepo:
+    Type: String
+    Description: GitHub Lambda@edge Repo to pull from. Only the Name. not the URL
+  GitHubOriginResponseLambdaBranch:
     Type: String
     Description: GitHub Branch
     Default: "aws-deployment"
   GitHubToken:
     NoEcho: true
     Type: String
-    Description: Secret. It might look something like 9b189a1654643522561f7b3ebd44a1531a4287af OAuthToken with access to Repo. The token will require repo and admin:repo_hook permissions. Go to https://github.com/settings/tokens
+    Description: Secret. It might look something like 9b189a1654643522561f7b3ebd44a1531a4287af OAuthToken with access to Repo. Go to https://github.com/settings/tokens
   BuildType:
     Type: String
     Default: "LINUX_CONTAINER"
@@ -28,7 +33,7 @@ Parameters:
   BuildComputeType:
     Type: String
     Default: "BUILD_GENERAL1_SMALL"
-    Description: The build compute type to use for building the app
+    Description: The build compute type to use for building the app. Go to https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html
   BuildImage:
     Type: String
     Default: "aws/codebuild/standard:3.0"
@@ -48,7 +53,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: !Sub ${ProjectName}-language-region-redirect-codebuild-policy
+        - PolicyName: buildHostingPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -60,15 +65,32 @@ Resources:
                 Resource: "arn:aws:logs:*:*:*"
                 Effect: Allow
               - Action:
-                - s3:PutObject
-                - s3:ListBucket
+                - kms:GenerateDataKey*
+                - kms:Encrypt
+                - kms:Decrypt
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                - secretsmanager:GetSecretValue
+                Effect: Allow
+                Resource: "*"
+              - Action:
                 - s3:DeleteObject
+                - s3:PutObject
+                - s3:PutObjectAcl
+                - s3:ListBucket
                 - s3:GetBucketLocation
                 - s3:GetObject
                 - s3:GetObjectVersion
                 Effect: Allow
-                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
-
+                Resource: "*"
+              - Action:
+                - s3:GetAccessPoint
+                - s3:GetAccountPublicAccessBlock
+                - s3:ListAccessPoints
+                - s3:ListJobs
+                Resource: "*"
+                Effect: Allow
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -82,7 +104,7 @@ Resources:
               - sts:AssumeRole
       Path: "/"
       Policies:
-        - PolicyName: !Sub ${ProjectName}-language-region-redirect-codepipeline-policy
+        - PolicyName: codepipeline-service
           PolicyDocument:
             Statement:
               - Action:
@@ -97,12 +119,8 @@ Resources:
                 Effect: Allow
               - Action:
                   - s3:PutObject
-                  - s3:ListBucket
-                  - s3:DeleteObject
-                  - s3:GetBucketLocation
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
+                Resource:
+                  - !GetAtt PipelineBucket.Arn
                 Effect: Allow
               - Action:
                   - s3:*
@@ -110,8 +128,17 @@ Resources:
                   - iam:PassRole
                 Resource: "*"
                 Effect: Allow
+              - Action:
+                - cloudfront:CreateDistribution
+                - cloudfront:TagResource
+                - cloudfront:UpdateDistribution
+                - cloudfront:DeleteDistribution
+                - acm:ListCertificates
+                - s3:GetBucketAcl
+                - s3:PutBucketAcl
+                Resource: "*"
+                Effect: Allow
             Version: '2012-10-17'
-
   CloudFormationRole:
     Type: AWS::IAM::Role
     Properties:
@@ -131,25 +158,6 @@ Resources:
           PolicyDocument:
             Statement:
               - Action:
-                  - codebuild:*
-                Resource: "*"
-                Effect: Allow
-              - Action:
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                  - s3:GetBucketVersioning
-                Resource: "*"
-                Effect: Allow
-              - Action:
-                  - s3:PutObject
-                  - s3:ListBucket
-                  - s3:DeleteObject
-                  - s3:GetBucketLocation
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                Resource: [!Join ["", [!GetAtt PipelineBucket.Arn, "/*"]], !GetAtt PipelineBucket.Arn]
-                Effect: Allow
-              - Action:
                   - cloudformation:*
                   - iam:PassRole
                   - iam:getRolePolicy
@@ -157,35 +165,31 @@ Resources:
                   - iam:CreateRole
                   - iam:UpdateRole
                   - iam:DeleteRole
+                  - iam:DetachRolePolicy
                   - iam:ListRoles
                   - iam:PutRolePolicy
                   - iam:GetRole
                   - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
-                  - lambda:CreateFunction
-                  - lambda:DeleteFunction
-                  - lambda:PutFunctionConcurrency
-                  - lambda:GetFunctionConfiguration
-                  - lambda:GetFunction
-                  - lambda:AddPermission
-                  - lambda:UpdateFunctionCode
-                  - lambda:UpdateFunctionConfiguration
-                  - lambda:RemovePermission
-                  - lambda:ListVersionsByFunction
-                  - lambda:PublishVersion
+                  - lambda:*
                   - events:*
                   - logs:*
                   - cloudwatch:*
+                  - s3:*
+                  - codebuild:*
+                  - cloudfront:*
+                  - route53:*
                 Resource: "*"
                 Effect: Allow
             Version: '2012-10-17'
 
   PipelineBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${ProjectName}-hosting-pipeline-bucket
 
-  CodeBuild:
+  CodeBuildLambda:
     Type: AWS::CodeBuild::Project
     DependsOn: CodeBuildRole
     Properties:
@@ -210,59 +214,91 @@ Resources:
               commands:
                 - npm install -g yarn
                 - export NODE_ENV=production
-            pre_build:
+            build:
               commands:
                 - yarn install --production
+            post_build:
+              commands:
+                - eval "$(node -e 'console.log(`rand=$RANDOM`)')"
+                - echo "{\"randomnumber\":\"$rand\"}" >> random.json
+                - echo Build completed on `date`
           artifacts:
-            type: zip
             files:
               - '**/*'
 
-  CodePipeline:
+  LambdaEdgePipeline:
     Type: AWS::CodePipeline::Pipeline
-    DependsOn: CodePipelineRole
     Properties:
+      Name: !Sub '${ProjectName}-lambda-edge-codepipeline'
+      RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
         Location: !Ref PipelineBucket
-      Name: !Sub ${ProjectName}-language-region-redirect-codepipeline
-      RestartExecutionOnUpdate: true
-      RoleArn: !GetAtt CodePipelineRole.Arn
       Stages:
         - Name: Source
           Actions:
             - InputArtifacts: []
-              Name: Source
+              RunOrder: 1
+              Name: OriginRequestLambdaSource
               ActionTypeId:
                 Category: Source
                 Owner: ThirdParty
                 Version: '1'
                 Provider: GitHub
-              RunOrder: 1
               Configuration:
                 Owner: !Ref GitHubUser
-                Repo: !Ref GitHubRepo
-                Branch: !Ref GitHubBranch
+                Repo: !Ref GitHubOriginRequestLambdaRepo
+                Branch: !Ref GitHubOriginRequestLambdaBranch
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
-                - Name: SourceOutput
-        - Name: Build
+                - Name: SourceOriginRequestLambdaOutput
+            - InputArtifacts: []
+              RunOrder: 1
+              Name: OriginResponseLambdaSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: '1'
+                Provider: GitHub
+              Configuration:
+                Owner: !Ref GitHubUser
+                Repo: !Ref GitHubOriginResponseLambdaRepo
+                Branch: !Ref GitHubOriginResponseLambdaBranch
+                OAuthToken: !Ref GitHubToken
+              OutputArtifacts:
+                - Name: SourceOriginResponseLambdaOutput
+        - Name: LambdaBuild
           Actions:
-            - Name: BuildAndTest
+            - Name: BuildOriginRequestLambda
+              RunOrder: 2
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref CodeBuild
+                ProjectName: !Ref CodeBuildLambda
               InputArtifacts:
-                - Name: SourceOutput
+                - Name: SourceOriginRequestLambdaOutput
               OutputArtifacts:
-                - Name: BuildOutput
-        - Name: LambdaDeploy
+                - Name: BuildOriginRequestLambdaOutput
+            - Name: BuildOriginResponseLambda
+              RunOrder: 2
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuildLambda
+              InputArtifacts:
+                - Name: SourceOriginResponseLambdaOutput
+              OutputArtifacts:
+                - Name: BuildOriginResponseLambdaOutput
+        - Name: LambdaEdgeDeploy
           Actions:
-            - Name: CreateUpdateLambda
+            - Name: CreateUpdateLambdaEdge
+              RunOrder: 3
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -272,20 +308,24 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub '${AWS::StackName}-lambda-edge'
-                TemplatePath: SourceOutput::cloudformation/lambda-edge.yml
+                StackName: !Sub '${ProjectName}-lambda-edge'
+                TemplatePath: SourceOriginRequestLambdaOutput::cloudformation/lambda-edge.yml
                 ParameterOverrides: !Sub |
                   {
                     "ProjectName": "${ProjectName}",
-                    "DeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOutput", "ObjectKey"]}
+                    "OriginRequestDeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOriginRequestLambdaOutput", "ObjectKey"]},
+                    "OriginRequestLambdaCodeBucket": "${PipelineBucket}",
+                    "OriginResponseDeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOriginResponseLambdaOutput", "ObjectKey"]},
+                    "OriginResponseLambdaCodeBucket": "${PipelineBucket}",
+                    "Nonce": {"Fn::GetParam":["BuildOriginResponseLambdaOutput","random.json","randomnumber"]}
                   }
               InputArtifacts:
-                - Name: SourceOutput
-                - Name: BuildOutput
+                - Name: BuildOriginRequestLambdaOutput
+                - Name: BuildOriginResponseLambdaOutput
+
+  # NOTE - Liam Raven - 25/11/2020 - You can also add a codepipeline here to CI/CD the cloudfront template
 
 Outputs:
-  PipelineBucket:
-    Description: S3 bucket holding all the OutputArtifacts of any pipeline stage
-    Value: !Ref PipelineBucket
-    Export:
-      Name: !Sub '${ProjectName}-language-region-redirect-pipeline-artifacts-bucket'
+  LambdaEdgePipelineUrl:
+    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${LambdaEdgePipeline}
+    Description: CodePipeline URL

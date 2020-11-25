@@ -1,13 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Lambda of lambda-edge-language-region-redirect GitHub repository
+Description: Lambda@edge CI/CD - Liam Raven - 25/11/2020
 
 Parameters:
   ProjectName:
-    Description: A unique identifier to allow multiple deployments of the cloudformation (MUST BE THE SAME FOR ENTIRE STACK)
+    Description: IMPORTANT! Must be consistent throughout all cloudformation deployments. eg. waterproofjack
     Type: String
-  DeploymentPackageKey:
+  OriginRequestDeploymentPackageKey:
     Type: String
-    Description: An S3 object key pointing of a ZIP file, an archive of everything that is needed to run the Lambda function. It is the output of the Build stage of the pipeline. (SHOULD BE AUTO FILLED BY CODEPIPELINE)
+  OriginRequestLambdaCodeBucket:
+    Type: String
+  OriginResponseDeploymentPackageKey:
+    Type: String
+  OriginResponseLambdaCodeBucket:
+    Type: String
+  Nonce:
+    Type: String
 
 Resources:
   LambdaRole:
@@ -27,52 +34,121 @@ Resources:
           - sts:AssumeRole
       Path: "/"
       Policies:
-        - PolicyName: XRaynWriteAccessPolicy
+        - PolicyName: !Sub '${ProjectName}-LambdaEdgePolicy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: Allow
-                Action:
-                  - xray:PutTraceSegments
-                  - xray:PutTelemetryRecords
-                  - xray:GetSamplingRules
-                  - xray:GetSamplingTargets
-                  - xray:GetSamplingStatisticSummaries
+              - Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+                - xray:GetSamplingRules
+                - xray:GetSamplingTargets
+                - xray:GetSamplingStatisticSummaries
                 Resource: "*"
-        - PolicyName: CloudWatchWriteAccessPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                  - logs:DescribeLogStreams
+                Effect: Allow
+              - Action:
+                - lambda:*
                 Resource: "*"
+                Effect: Allow
+              - Action:
+                - s3:*
+                Resource: [!Join [ '', ['arn:aws:s3:::', !Ref OriginRequestLambdaCodeBucket]], !Join [ '', ['arn:aws:s3:::', !Ref OriginRequestLambdaCodeBucket, '/*']], !Join [ '', ['arn:aws:s3:::', !Ref OriginResponseLambdaCodeBucket]], !Join [ '', ['arn:aws:s3:::', !Ref OriginResponseLambdaCodeBucket, '/*']]]
+                Effect: Allow
+              - Action:
+                - logs:*
+                Resource: "arn:aws:logs:*:*:*"
+                Effect: Allow
 
-  LambdaFunction:
+  PublishLambdaVersionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: PublishVersion
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:PublishVersion
+            Resource: '*'
+
+  LambdaEdgeOriginRequestFunction:
     Type: AWS::Lambda::Function
     DependsOn: LambdaRole
     Properties:
-      FunctionName: !Ref "AWS::StackName"
+      FunctionName: !Sub '${ProjectName}-lambda-edge-origin-request'
       Role: !GetAtt LambdaRole.Arn
       Handler: handler.handler
       Runtime: nodejs12.x
       Timeout: 5
       Code:
-        S3Bucket:
-          'Fn::ImportValue': !Sub '${ProjectName}-language-region-redirect-pipeline-artifacts-bucket'
-        S3Key: !Ref DeploymentPackageKey
+        S3Bucket: !Ref OriginRequestLambdaCodeBucket
+        S3Key: !Ref OriginRequestDeploymentPackageKey
 
-  VersionedLambdaFunction:
-    Type: 'AWS::Lambda::Version'
+  LambdaEdgeOriginRequestVersion:
+    Type: Custom::LatestLambdaVersion
     Properties:
-      FunctionName: !Ref LambdaFunction
+      ServiceToken: !GetAtt PublishLambdaVersion.Arn
+      FunctionName: !Ref LambdaEdgeOriginRequestFunction
+      Nonce: !Ref Nonce
+
+  LambdaEdgeOriginResponseFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: LambdaRole
+    Properties:
+      FunctionName: !Sub '${ProjectName}-lambda-edge-origin-response'
+      Role: !GetAtt LambdaRole.Arn
+      Handler: handler.handler
+      Runtime: nodejs12.x
+      Timeout: 5
+      Code:
+        S3Bucket: !Ref OriginResponseLambdaCodeBucket
+        S3Key: !Ref OriginResponseDeploymentPackageKey
+
+  LambdaEdgeOriginResponseVersion:
+    Type: Custom::LatestLambdaVersion
+    Properties:
+      ServiceToken: !GetAtt PublishLambdaVersion.Arn
+      FunctionName: !Ref LambdaEdgeOriginResponseFunction
+      Nonce: !Ref Nonce
+
+  PublishLambdaVersion:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Role: !GetAtt PublishLambdaVersionRole.Arn
+      Code:
+        ZipFile: |
+          const {Lambda} = require('aws-sdk')
+          const {send, SUCCESS, FAILED} = require('cfn-response')
+          const lambda = new Lambda()
+          exports.handler = (event, context) => {
+            const {RequestType, ResourceProperties: {FunctionName}} = event
+            if (RequestType == 'Delete') return send(event, context, SUCCESS)
+            lambda.publishVersion({FunctionName}, (err, {FunctionArn}) => {
+              err
+                ? send(event, context, FAILED, err)
+                : send(event, context, SUCCESS, {FunctionArn})
+            })
+          }
 
 Outputs:
-  VersionedLambdaEdgeLanguageRegionRedirectArn:
-    Value: !Ref VersionedLambdaFunction
-    Description: Lambda@edge language-region-redirect ARN
+  VersionedOriginRequestLambdaArn:
+    Value: !GetAtt LambdaEdgeOriginRequestVersion.FunctionArn
+    Description: Lambda@edge origin request ARN with Version
     Export:
-      Name: !Sub "${ProjectName}-lambda-edge-language-region-redirect-arn"
+      Name: !Sub "${ProjectName}-origin-request-lambda-arn"
+  VersionedOriginResponseLambdaArn:
+    Value: !GetAtt LambdaEdgeOriginResponseVersion.FunctionArn
+    Description: Lambda@edge origin response ARN with Version
+    Export:
+      Name: !Sub "${ProjectName}-origin-response-lambda-arn"
