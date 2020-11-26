@@ -193,7 +193,7 @@ Resources:
     Type: AWS::CodeBuild::Project
     DependsOn: CodeBuildRole
     Properties:
-      Name: !Sub ${ProjectName}-language-region-redirect-codebuild
+      Name: !Sub ${ProjectName}-lambda-edge-codebuild
       Description: Deploy site to S3
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Artifacts:
@@ -219,8 +219,7 @@ Resources:
                 - yarn install --production
             post_build:
               commands:
-                - eval "$(node -e 'console.log(`rand=$RANDOM`)')"
-                - echo "{\"randomnumber\":\"$rand\"}" >> random.json
+                - node -e 'require("./cloudformation/nonce.js").nonce()'
                 - echo Build completed on `date`
           artifacts:
             files:
