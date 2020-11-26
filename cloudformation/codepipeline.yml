@@ -339,8 +339,3 @@ Resources:
                 - Name: SourceArtifacts
                 - Name: BuildOriginRequestLambdaOutput
                 - Name: BuildOriginResponseLambdaOutput
-
-Outputs:
-  LambdaEdgePipelineUrl:
-    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${LambdaEdgePipeline}
-    Description: CodePipeline URL
