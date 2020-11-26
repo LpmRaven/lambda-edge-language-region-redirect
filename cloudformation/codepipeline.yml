@@ -225,10 +225,10 @@ Resources:
             files:
               - '**/*'
 
-  LambdaEdgePipeline:
+  HostingPipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub '${ProjectName}-lambda-edge-codepipeline'
+      Name: !Sub '${ProjectName}-hosting-codepipeline'
       RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
@@ -266,6 +266,22 @@ Resources:
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
                 - Name: SourceOriginResponseLambdaOutput
+            - InputArtifacts: []
+              Name: WebsiteSource
+              RunOrder: 1
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: '1'
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: SourceArtifacts
+              Configuration:
+                PollForSourceChanges: false
+                Owner: !Ref GitHubUser
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Ref GitHubToken
         - Name: LambdaBuild
           Actions:
             - Name: BuildOriginRequestLambda
@@ -294,9 +310,9 @@ Resources:
                 - Name: SourceOriginResponseLambdaOutput
               OutputArtifacts:
                 - Name: BuildOriginResponseLambdaOutput
-        - Name: LambdaEdgeDeploy
+        - Name: HostingInfrastructure
           Actions:
-            - Name: CreateUpdateLambdaEdge
+            - Name: CreateUpdateHostingAndCloudfront
               RunOrder: 3
               ActionTypeId:
                 Category: Deploy
@@ -307,11 +323,12 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub '${ProjectName}-lambda-edge'
-                TemplatePath: SourceOriginRequestLambdaOutput::cloudformation/lambda-edge.yml
+                StackName: !Sub '${ProjectName}-cloudfront'
+                TemplatePath: SourceArtifacts::cloudformation/cloudfront.yml
                 ParameterOverrides: !Sub |
                   {
                     "ProjectName": "${ProjectName}",
+                    "RootDomainName": "${RootDomainName}",
                     "OriginRequestDeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOriginRequestLambdaOutput", "ObjectKey"]},
                     "OriginRequestLambdaCodeBucket": "${PipelineBucket}",
                     "OriginResponseDeploymentPackageKey": {"Fn::GetArtifactAtt": ["BuildOriginResponseLambdaOutput", "ObjectKey"]},
@@ -319,10 +336,9 @@ Resources:
                     "Nonce": {"Fn::GetParam":["BuildOriginResponseLambdaOutput","random.json","randomnumber"]}
                   }
               InputArtifacts:
+                - Name: SourceArtifacts
                 - Name: BuildOriginRequestLambdaOutput
                 - Name: BuildOriginResponseLambdaOutput
-
-  # NOTE - Liam Raven - 25/11/2020 - You can also add a codepipeline here to CI/CD the cloudfront template
 
 Outputs:
   LambdaEdgePipelineUrl:
