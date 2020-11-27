@@ -33,6 +33,18 @@ I have written cloudformation for long-lasting systems. This includes codepipeli
 2. Follow Cloudformation steps below
 3. Configure by following the Config changes and updates` steps below
 
+### Reset Country Config
+
+Update the country list, set default country to "us" (United States) and disables all countries
+
+`yarn run countryReset` after installing dependencies
+
+### Reset Language Config
+
+Update the language list, set default language to "en" (English) and disables all countries
+
+`yarn run languageReset` after installing dependencies
+
 ### Cloudformation (yaml)
 
 1. Copy `cloudformation/codepipeline.yml`

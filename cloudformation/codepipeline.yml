@@ -266,22 +266,6 @@ Resources:
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
                 - Name: SourceOriginResponseLambdaOutput
-            - InputArtifacts: []
-              Name: WebsiteSource
-              RunOrder: 1
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Version: '1'
-                Provider: GitHub
-              OutputArtifacts:
-                - Name: SourceArtifacts
-              Configuration:
-                PollForSourceChanges: false
-                Owner: !Ref GitHubUser
-                Repo: !Ref GitHubRepo
-                Branch: !Ref GitHubBranch
-                OAuthToken: !Ref GitHubToken
         - Name: LambdaBuild
           Actions:
             - Name: BuildOriginRequestLambda
@@ -324,7 +308,7 @@ Resources:
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub '${ProjectName}-cloudfront'
-                TemplatePath: SourceArtifacts::cloudformation/cloudfront.yml
+                TemplatePath: BuildOriginRequestLambdaOutput::cloudformation/cloudfront.yml
                 ParameterOverrides: !Sub |
                   {
                     "ProjectName": "${ProjectName}",
@@ -336,6 +320,5 @@ Resources:
                     "Nonce": {"Fn::GetParam":["BuildOriginResponseLambdaOutput","random.json","randomnumber"]}
                   }
               InputArtifacts:
-                - Name: SourceArtifacts
                 - Name: BuildOriginRequestLambdaOutput
                 - Name: BuildOriginResponseLambdaOutput

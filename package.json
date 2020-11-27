@@ -1,6 +1,17 @@
 {
+  "name": "lambda-edge-language-region-redirect",
+  "version": "0.1.0",
+  "scripts": {
+    "countryReset": "node -e 'require(`./country-reset.js`).countryReset()'",
+    "languageReset": "npx babel node_modules/iso-639-1/src/data.js --out-file language-data.js --presets=@babel/preset-env && node -e 'require(`./language-reset.js`).languageReset()'"
+  },
   "dependencies": {
     "country-list": "^2.2.0",
     "iso-639-1": "^2.1.4"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.9",
+    "@babel/preset-env": "^7.12.7"
   }
 }
