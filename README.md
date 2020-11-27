@@ -44,7 +44,7 @@ Note: If you do not have existing cloudfront cloudformation, you will need to ma
 
 ### Config changes and updates
 
-1. Make config changes inside your folked repo `this file`
+1. Make config changes inside your folked repo `country-config.js` and `language-config.js`
 2. Push changes to your repo `aws-deployment` branch (or the branch that you set as GitHubBranch when creating the codepipeline stack)
 3. re-deploy cloudfront cloudformation to update lambda version
 

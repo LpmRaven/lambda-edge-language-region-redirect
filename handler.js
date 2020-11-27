@@ -50,8 +50,8 @@ exports.handler = (event, context, callback) => {
             ) {
                 console.log("headers.cookie['language-region-override']", headers.cookie['language-region-override'])
 
-                const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 4).toLowerCase();
-                const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 1).toLowerCase();
+                const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 5).toLowerCase();
+                const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 2).toLowerCase();
                 const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback)
 
                 console.log('languageRegion', languageRegion);
@@ -71,7 +71,7 @@ exports.handler = (event, context, callback) => {
 
                 const headerCountryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
                 const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
-                const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 1) : acceptLanguage;
+                const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
                 const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallback, countryFallback)
 
                 console.log('languageRegion', languageRegion);
