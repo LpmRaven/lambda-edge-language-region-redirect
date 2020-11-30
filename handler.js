@@ -3,7 +3,7 @@ const countries = require('country-list');
 const { languageConfig, languageFallback, domainDefaultLanguage } = require('./language-config');
 const { countryConfig, countryFallback, domainDefaultCountry } = require('./country-config');
 const { checkRequiredConfig } = require('./check-required-config');
-const { ignorePaths } = require('./ingore-paths')
+const { ignorePaths } = require('./ignore-paths')
 
 const validateLanguageRegionCode = languageRegion => {
     const languageCode = languageRegion.substring(0, 2).toLowerCase();
