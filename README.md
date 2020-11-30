@@ -35,9 +35,15 @@ I have written cloudformation for long-lasting systems. This includes codepipeli
 
 ### Reset Country Config
 
-Update the country list, set default country to "us" (United States) and disables all countries
+Update the country list, set default country to "us" (United States of America) and disables all countries
 
 `yarn run countryReset` after installing dependencies
+
+| Variable              |type      | Default value     | What it does  |
+|-----------------------|----------|-------------------|---------------|
+| countryFallback       | string   | "US"              | If the country code provided is disabled or invalid, this will be the fallback value   |
+| europeanUnionEnabled  | boolean  | false             | Passed in cookie for use on client-side, the EU is not used by hreflang attributes but this is helpful for 'country' selection and e-commerce systems. You must also enable all EU countries in countryConfig |
+| countryConfig         | array    | generated values  | Enables and disabled countries to be used in country selection and hreflang attributes |
 
 ### Reset Language Config
 

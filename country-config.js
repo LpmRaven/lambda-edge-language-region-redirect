@@ -1,6 +1,6 @@
 
-    const countryFallback = "us";
-    const countryConfig = [
+const countryFallback = "us";
+const countryConfig = [
     {
         "code": "AD",
         "name": "Andorra",
@@ -64,7 +64,7 @@
     {
         "code": "AU",
         "name": "Australia",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "AW",
@@ -189,7 +189,7 @@
     {
         "code": "CA",
         "name": "Canada",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "CC",
@@ -384,7 +384,7 @@
     {
         "code": "GB",
         "name": "United Kingdom of Great Britain and Northern Ireland",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "GD",
@@ -854,7 +854,7 @@
     {
         "code": "NZ",
         "name": "New Zealand",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "OM",
@@ -1164,7 +1164,7 @@
     {
         "code": "US",
         "name": "United States of America",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "UY",
@@ -1247,5 +1247,4 @@
         "enabled": false
     }
 ];
-    module.exports = {countryConfig, countryFallback};
-    
+module.exports = { countryConfig, countryFallback };

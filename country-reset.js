@@ -12,6 +12,7 @@ const countryReset = () => {
 
     const countryFileContent = `
     const countryFallback = "us";
+    const europeanUnionEnabled = false;
     const countryConfig = ${jsonData};
     module.exports = {countryConfig, countryFallback};
     `;

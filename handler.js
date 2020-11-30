@@ -18,13 +18,12 @@ const getCustomResponseWithUrl = url => ({
 const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
     if (languages.validate(tempLanguageCode)) { // Check valid codes
         if (countries.getName(tempCountryCode)) {
-            const languageCode = languageConfig[tempLanguageCode] === true ? tempLanguageCode : languageFallback;  // Check language is enabled in config
-            const countryCode = countryConfig[tempCountryCode] === true ? tempCountryCode : countryFallback; // Check country is enabled in config
+            const languageCode = languageConfig.some(language => language.code.toLowerCase() === tempLanguageCode && language.enabled === true) ? tempLanguageCode : languageFallback;  // Check language is enabled in config
+            const countryCode = countryConfig.some(country => country.code.toLowerCase() === tempCountryCode && country.enabled === true) ? tempCountryCode : countryFallback; // Check country is enabled in config
 
             const languageRegion = `${languageCode}-${countryCode}`;
 
             console.log('languageRegion', languageRegion);
-
 
         } else {
             throw new Error(`Country Code '${tempCountryCode}' is invalid`);
