@@ -81,10 +81,10 @@ exports.handler = (event, context, callback) => {
 
             const headers = request.headers;
             const uri = request.uri;
-            const languageFallbackString = languageFallbackString.toLowerCase();
-            const countryFallbackString = countryFallbackString.toLowerCase();
-            const domainDefaultLanguageString = domainDefaultLanguageString.toLowerCase();
-            const domainDefaultCountryString = domainDefaultCountryString.toLowerCase();
+            const languageFallbackString = languageFallback.toLowerCase();
+            const countryFallbackString = countryFallback.toLowerCase();
+            const domainDefaultLanguageString = domainDefaultLanguage.toLowerCase();
+            const domainDefaultCountryString = domainDefaultCountry.toLowerCase();
 
             // Paths to ignore such as data and images
             if (!uri || ignorePaths.some(path => uri.includes(path))) {
