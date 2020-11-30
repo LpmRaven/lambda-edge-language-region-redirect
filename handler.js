@@ -19,6 +19,12 @@ const getCustomResponseWithUrl = url => ({
     },
 });
 
+const replaceFirstPath = (uri, languageRegion) => {
+    const splitPath = uri.split('/');
+    splitPath[0] = languageRegion;
+    splitPath.join('/');
+}
+
 const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, languageRegion, path) => {
 
     console.log('domainDefaultLanguage', domainDefaultLanguage);
@@ -28,7 +34,7 @@ const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, lang
 
     const domainDefaultLanguageRegion = `${domainDefaultLanguage.toLowerCase()}-${domainDefaultCountry.toLowerCase()}`;
     if (path === '/') return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}`;
-    return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}${path}`;
+    return languageRegion === domainDefaultLanguageRegion ? path : `/${replaceFirstPath(path, languageRegion)}`;
 }
 
 const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
@@ -55,7 +61,7 @@ exports.handler = (event, context, callback) => {
     const request = event.Records[0].cf.request;
 
     try {
-        if (checkRequiredConfig({ languageFallback, countryFallback })) { // country-config.js and language-config.js must be modified for your preferences
+        if (checkRequiredConfig({ languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry })) { // country-config.js and language-config.js must be modified for your preferences
 
             const headers = request.headers;
             const uri = request.uri;
