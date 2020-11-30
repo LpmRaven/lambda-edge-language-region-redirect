@@ -11,10 +11,11 @@ const countryReset = () => {
     const jsonData = JSON.stringify(countryData, null, 4);
 
     const countryFileContent = `
-    const countryFallback = "us";
+    const domainDefaultCountry = "US";
+    const countryFallback = "US";
     const europeanUnionEnabled = false;
     const countryConfig = ${jsonData};
-    module.exports = {countryConfig, countryFallback};
+    module.exports = {countryConfig, countryFallback, domainDefaultCountry};
     `;
 
     fs.writeFile("country-config.js", countryFileContent, (err) => {

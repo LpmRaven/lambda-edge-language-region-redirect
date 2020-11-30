@@ -41,6 +41,8 @@ Update the country list, set default country to "us" (United States of America) 
 
 | Variable              |type      | Default value     | What it does  |
 |-----------------------|----------|-------------------|---------------|
+| domainDefaultCountry  | string   | "US"              | The websites default country. eg. "US" combined with a domainDefaultLanguage of "EN" - `my-domain.com/en-us/some-url` will become `my-domain.com/some-url` |
+| domainDefaultLanguage  | string   | "EN"              | The websites default country. eg. "EN" combined with a domainDefaultCountry of "GB" - `my-domain.com/en-gb/some-url` will become `my-domain.com/some-url` |
 | countryFallback       | string   | "US"              | If the country code provided is disabled or invalid, this will be the fallback value   |
 | europeanUnionEnabled  | boolean  | false             | Passed in cookie for use on client-side, the EU is not used by hreflang attributes but this is helpful for 'country' selection and e-commerce systems. You must also enable all EU countries in countryConfig |
 | countryConfig         | array    | generated values  | Enables and disabled countries to be used in country selection and hreflang attributes |

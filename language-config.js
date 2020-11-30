@@ -1,5 +1,6 @@
-
-    const languageConfig = [
+const domainDefaultLanguage = "EN";
+const languageFallback = "EN";
+const languageConfig = [
     {
         "code": "aa",
         "name": "Afar",
@@ -1105,6 +1106,4 @@
         "enabled": false
     }
 ];
-    const languageFallback = "en";
-    module.exports = {languageConfig, languageFallback};
-    
+module.exports = { languageConfig, languageFallback, domainDefaultLanguage };

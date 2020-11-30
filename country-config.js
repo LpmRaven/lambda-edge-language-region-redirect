@@ -1,5 +1,5 @@
-
-const countryFallback = "us";
+const domainDefaultCountry = "US";
+const countryFallback = "US";
 const countryConfig = [
     {
         "code": "AD",
@@ -1247,4 +1247,4 @@ const countryConfig = [
         "enabled": false
     }
 ];
-module.exports = { countryConfig, countryFallback };
+module.exports = { countryConfig, countryFallback, domainDefaultCountry };

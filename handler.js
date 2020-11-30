@@ -1,7 +1,7 @@
 const languages = require('iso-639-1');
 const countries = require('country-list');
-const { languageConfig, languageFallback } = require('./language-config');
-const { countryConfig, countryFallback } = require('./country-config');
+const { languageConfig, languageFallback, domainDefaultLanguage } = require('./language-config');
+const { countryConfig, countryFallback, domainDefaultCountry } = require('./country-config');
 const { checkRequiredConfig } = require('./check-required-config');
 
 const getCustomResponseWithUrl = url => ({
@@ -12,8 +12,18 @@ const getCustomResponseWithUrl = url => ({
             key: 'Location',
             value: url,
         }],
+        'cache-control': [{
+            key: 'Cache-Control',
+            value: "max-age=3600"
+        }],
     },
 });
+
+const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, languageRegion, path) => {
+    const domainDefaultLanguageRegion = `${domainDefaultLanguage.toLowerCase()}-${domainDefaultCountry.toLowerCase()}`;
+    if (path === '/') return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}`;
+    return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}${path}`;
+}
 
 const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
     if (languages.validate(tempLanguageCode)) { // Check valid codes
@@ -23,7 +33,9 @@ const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, 
 
             const languageRegion = `${languageCode}-${countryCode}`;
 
-            console.log('languageRegion', languageRegion);
+            console.log('languageRegion in getLanguageRegion', languageRegion);
+
+            return languageRegion;
 
         } else {
             throw new Error(`Country Code '${tempCountryCode}' is invalid`);
@@ -51,10 +63,12 @@ exports.handler = (event, context, callback) => {
 
                 const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 5).toLowerCase();
                 const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 2).toLowerCase();
-                const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback)
+                const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback);
 
-                console.log('languageRegion', languageRegion);
-                callback(null, request);
+                console.log('languageRegion in language-region-override', languageRegion);
+                const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
+                const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
+                callback(null, modifiedRequest);
 
             } else if (
                 headers &&
@@ -73,15 +87,18 @@ exports.handler = (event, context, callback) => {
                 const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
                 const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallback, countryFallback)
 
-                console.log('languageRegion', languageRegion);
-                callback(null, request);
+                console.log('languageRegion in cloudfront-viewer-country/accept-language', languageRegion);
+                const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
+                const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
+                callback(null, modifiedRequest);
 
             } else {
                 const languageRegion = getLanguageRegion(languageFallback, countryFallback, languageFallback, countryFallback)
 
-                console.log('languageRegion', languageRegion);
-                callback(null, request);
-
+                console.log('languageRegion in fallback', languageRegion);
+                const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
+                const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
+                callback(null, modifiedRequest);
             }
         }
 

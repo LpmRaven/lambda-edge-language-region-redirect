@@ -12,9 +12,10 @@ const languageReset = () => {
     const jsonData = JSON.stringify(languageData, null, 4);
 
     const languageFileContent = `
-    const languageFallback = "en";
+    const domainDefaultLanguage = "EN";
+    const languageFallback = "EN";
     const languageConfig = ${jsonData};
-    module.exports = {languageConfig, languageFallback};
+    module.exports = {languageConfig, languageFallback, domainDefaultLanguage};
     `;
 
     fs.writeFile("language-config.js", languageFileContent, (err) => {
