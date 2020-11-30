@@ -20,6 +20,12 @@ const getCustomResponseWithUrl = url => ({
 });
 
 const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, languageRegion, path) => {
+
+    console.log('domainDefaultLanguage', domainDefaultLanguage);
+    console.log('domainDefaultCountry', domainDefaultCountry);
+    console.log('languageRegion', languageRegion);
+    console.log('path', path);
+
     const domainDefaultLanguageRegion = `${domainDefaultLanguage.toLowerCase()}-${domainDefaultCountry.toLowerCase()}`;
     if (path === '/') return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}`;
     return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}${path}`;
@@ -63,7 +69,7 @@ exports.handler = (event, context, callback) => {
 
                 const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 5).toLowerCase();
                 const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 2).toLowerCase();
-                const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback, countryFallback);
+                const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallback.toLowerCase(), countryFallback.toLowerCase());
 
                 console.log('languageRegion in language-region-override', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
@@ -85,15 +91,18 @@ exports.handler = (event, context, callback) => {
                 const headerCountryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
                 const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
                 const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
-                const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallback, countryFallback)
+                const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallback.toLowerCase(), countryFallback.toLowerCase())
 
                 console.log('languageRegion in cloudfront-viewer-country/accept-language', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
+                console.log('modifiedUri', modifiedUri);
                 const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
+                console.log('modifiedRequest', modifiedRequest);
+
                 callback(null, modifiedRequest);
 
             } else {
-                const languageRegion = getLanguageRegion(languageFallback, countryFallback, languageFallback, countryFallback)
+                const languageRegion = getLanguageRegion(languageFallback.toLowerCase(), countryFallback.toLowerCase(), languageFallback.toLowerCase(), countryFallback.toLowerCase())
 
                 console.log('languageRegion in fallback', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguage, domainDefaultCountry, languageRegion, uri);
