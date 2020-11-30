@@ -6,6 +6,8 @@ const { checkRequiredConfig } = require('./check-required-config');
 const { ignorePaths } = require('./ignore-paths')
 
 const validateLanguageRegionCode = languageRegion => {
+    if (languageRegion.length !== 5) return false;
+
     const languageCode = languageRegion.substring(0, 2).toLowerCase();
     const countryCode = languageRegion.substring(3, 5).toLowerCase();
 
@@ -29,15 +31,19 @@ const getCustomResponseWithUrl = url => ({
 
 const replaceFirstPath = (uri, languageRegion) => {
     let splitPath = uri.split('/');
-    if (validateLanguageRegionCode(splitPath[0])) {
-        splitPath[0] = languageRegion;
-        const newPath = splitPath.join('/');
-        return newPath;
-    } else {
-        splitPath.unshift(languageRegion)
-        const newPath = splitPath.join('/');
-        return newPath;
-    }
+    console.log('splitPath', splitPath);
+
+    const checkedPaths = splitPath.filter(e => !validateLanguageRegionCode(e));
+    console.log('checkedPaths', checkedPaths);
+    checkedPaths.unshift(languageRegion)
+
+    console.log('checkedPaths with unshift', checkedPaths);
+
+    const newPath = checkedPaths.map(e => e).join('/');
+
+    console.log('newPath', newPath);
+
+    return newPath;
 
 }
 
