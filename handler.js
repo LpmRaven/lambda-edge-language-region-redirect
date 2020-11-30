@@ -28,15 +28,15 @@ const getCustomResponseWithUrl = url => ({
 });
 
 const replaceFirstPath = (uri, languageRegion) => {
-    const splitPath = uri.split('/');
+    let splitPath = uri.split('/');
     if (validateLanguageRegionCode(splitPath[0])) {
         splitPath[0] = languageRegion;
-        splitPath.join('/');
-        return splitPath;
+        const newPath = splitPath.join('/');
+        return newPath;
     } else {
         splitPath.unshift(languageRegion)
-        splitPath.join('/');
-        return splitPath;
+        const newPath = splitPath.join('/');
+        return newPath;
     }
 
 }
