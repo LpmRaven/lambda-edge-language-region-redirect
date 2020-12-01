@@ -1,3 +1,5 @@
+const { replaceFirstPath } = require('./replace-first-path');
+
 const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, languageRegion, path) => {
 
     console.log('domainDefaultLanguage', domainDefaultLanguage);
