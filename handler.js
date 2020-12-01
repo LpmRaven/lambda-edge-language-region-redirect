@@ -5,7 +5,6 @@ const { countryConfig, countryFallback, domainDefaultCountry } = require('./coun
 const { checkRequiredConfig } = require('./check-required-config');
 const { ignorePaths } = require('./ignore-paths')
 const { getCustomResponseWithUrl } = require('./helpers/get-custom-response-with-url');
-const { replaceFirstPath } = require('./helpers/replace-first-path');
 const { getLanguageRegionPath } = require('./helpers/get-language-region-path');
 const { getLanguageRegion } = require('./helpers/get-language-region');
 
@@ -36,7 +35,7 @@ exports.handler = async (event) => {
 
                 const cookieCountryCode = headers.cookie['language-region-override'].substring(3, 5).toLowerCase();
                 const cookieLanguageCode = headers.cookie['language-region-override'].substring(0, 2).toLowerCase();
-                const languageRegion = getLanguageRegion(cookieLanguageCode, cookieCountryCode, languageFallbackString, countryFallbackString);
+                const languageRegion = getLanguageRegion(languageConfig, countryConfig, cookieLanguageCode, cookieCountryCode, languageFallbackString, countryFallbackString);
 
                 console.log('languageRegion in language-region-override', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);
@@ -58,7 +57,7 @@ exports.handler = async (event) => {
                 const headerCountryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
                 const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
                 const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
-                const languageRegion = getLanguageRegion(headerLanguageCode, headerCountryCode, languageFallbackString, countryFallbackString)
+                const languageRegion = getLanguageRegion(languageConfig, countryConfig, headerLanguageCode, headerCountryCode, languageFallbackString, countryFallbackString)
 
                 console.log('languageRegion in cloudfront-viewer-country/accept-language', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);
@@ -69,7 +68,7 @@ exports.handler = async (event) => {
                 return modifiedRequest;
 
             } else {
-                const languageRegion = getLanguageRegion(languageFallbackString, countryFallbackString, languageFallbackString, countryFallbackString)
+                const languageRegion = getLanguageRegion(languageConfig, countryConfig, languageFallbackString, countryFallbackString, languageFallbackString, countryFallbackString)
 
                 console.log('languageRegion in fallback', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);

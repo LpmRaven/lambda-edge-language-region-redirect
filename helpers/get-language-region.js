@@ -1,4 +1,4 @@
-const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
+const getLanguageRegion = (languageConfig, countryConfig, tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
     if (languages.validate(tempLanguageCode)) { // Check valid codes
         if (countries.getName(tempCountryCode)) {
             const languageCode = languageConfig.some(language => language.code.toLowerCase() === tempLanguageCode && language.enabled === true) ? tempLanguageCode : languageFallback;  // Check language is enabled in config
