@@ -1,3 +1,6 @@
+const languages = require('iso-639-1');
+const countries = require('country-list');
+
 const getLanguageRegion = (languageConfig, countryConfig, tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
     if (languages.validate(tempLanguageCode)) { // Check valid codes
         if (countries.getName(tempCountryCode)) {

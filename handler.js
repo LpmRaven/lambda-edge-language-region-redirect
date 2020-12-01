@@ -1,5 +1,3 @@
-const languages = require('iso-639-1');
-const countries = require('country-list');
 const { languageConfig, languageFallback, domainDefaultLanguage } = require('./language-config');
 const { countryConfig, countryFallback, domainDefaultCountry } = require('./country-config');
 const { checkRequiredConfig } = require('./check-required-config');
