@@ -9,7 +9,7 @@ const getLanguageRegion = (languageConfig, countryConfig, tempLanguageCode, temp
 
             const languageRegion = `${languageCode}-${countryCode}`;
 
-            console.log('languageRegion in getLanguageRegion', languageRegion);
+            //console.log('languageRegion in getLanguageRegion', languageRegion);
 
             return languageRegion;
 

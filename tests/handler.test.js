@@ -1,21 +1,30 @@
 const { handler } = require('../handler');
+const { changeLanguageRegion } = require('../helpers/change-language-region');
+
 const { getCustomResponseWithUrl } = require('../helpers/get-custom-response-with-url');
 let { mockOriginRequestEvent } = require('./mock-origin-request-event');
+
+jest.mock('../helpers/change-language-region', () => ({
+    changeLanguageRegion: jest.fn()
+}));
 
 describe('handler - will return origional request for missing URIs and ignore-paths', () => {
 
     beforeEach(() => {
+        changeLanguageRegion.mockImplementationOnce(() => 'changeLanguageRegionMock')
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.resetAllMocks();
     });
 
     test('will not ignore valid uri', async () => {
         let mockEvent = mockOriginRequestEvent;
-        mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+        const validUri = "/here-is-a-valid-uri";
+        mockEvent.Records[0].cf.request.uri = validUri;
 
-        await expect(handler(mockEvent)).resolves.toEqual(getCustomResponseWithUrl("/here-is-a-valid-uri"));
+        await handler(mockEvent);
+        await expect(changeLanguageRegion).toHaveBeenCalledWith(validUri);
     });
 
     test('will return origional request for undefined uri', async () => {
@@ -152,32 +161,99 @@ describe('handler - headers.cookie["language-region-override"]', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.resetAllMocks();
     });
 
-    test('', async () => {
-        // let mockEvent = mockOriginRequestEvent;
-        // mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+    // test('', async () => {
+    //     let mockEvent = mockOriginRequestEvent;
+    //     mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+    // mockEvent.Records[0].cf.request.headers = {
+    //     ...mockEvent.Records[0].cf.request.headers,
+    //     'cookie': [
+    //         {
+    //             "key": "language-region-override",
+    //             "value": "EN-GB"
+    //         }
+    //     ]
+    // };
 
-        // await expect(handler(mockEvent)).resolves.toEqual(getCustomResponseWithUrl("/here-is-a-valid-uri"));
-    });
-
+    //     await expect(handler(mockEvent)).resolves.toEqual(getCustomResponseWithUrl("/en-gb/here-is-a-valid-uri"));
+    // });
 });
 
 describe('handler - headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value', () => {
 
     beforeEach(() => {
+        changeLanguageRegion.mockImplementationOnce(() => 'changeLanguageRegionMock')
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.resetAllMocks();
     });
 
-    test('', async () => {
-        // let mockEvent = mockOriginRequestEvent;
-        // mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+    test('will call changeLanguageRegion with just uri if headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value are undefined', async () => {
+        let mockEvent = mockOriginRequestEvent;
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cloudfront-viewer-country': [
+                {
+                    "key": "Cloudfront-Viewer-Country",
+                    "value": undefined
+                }
+            ],
+            'accept-language': [
+                {
+                    "key": "Accept-Language",
+                    "value": undefined
+                }
+            ]
+        };
 
-        // await expect(handler(mockEvent)).resolves.toEqual(getCustomResponseWithUrl("/here-is-a-valid-uri"));
+        await handler(mockEvent);
+        await expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
     });
 
+    test('will call changeLanguageRegion with just uri if headers["accept-language"][0].value is undefined', async () => {
+        let mockEvent = mockOriginRequestEvent;
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cloudfront-viewer-country': [
+                {
+                    "key": "Cloudfront-Viewer-Country",
+                    "value": "GB"
+                }
+            ],
+            'accept-language': [
+                {
+                    "key": "Accept-Language",
+                    "value": undefined
+                }
+            ]
+        };
+
+        await handler(mockEvent);
+        await expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
+    });
+
+    test('will call changeLanguageRegion with just uri if headers["cloudfront-viewer-country"][0].value is undefined', async () => {
+        let mockEvent = mockOriginRequestEvent;
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cloudfront-viewer-country': [
+                {
+                    "key": "Cloudfront-Viewer-Country",
+                    "value": undefined
+                }
+            ],
+            'accept-language': [
+                {
+                    "key": "Accept-Language",
+                    "value": "EN"
+                }
+            ]
+        };
+
+        await handler(mockEvent);
+        await expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
+    });
 });

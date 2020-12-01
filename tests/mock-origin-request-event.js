@@ -60,7 +60,7 @@ let mockOriginRequestEvent = {
                         }
                     },
                     "querystring": "",
-                    "uri": "/"
+                    "uri": "/default-uri"
                 }
             }
         }
