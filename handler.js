@@ -4,82 +4,12 @@ const { languageConfig, languageFallback, domainDefaultLanguage } = require('./l
 const { countryConfig, countryFallback, domainDefaultCountry } = require('./country-config');
 const { checkRequiredConfig } = require('./check-required-config');
 const { ignorePaths } = require('./ignore-paths')
+const { getCustomResponseWithUrl } = require('./helpers/get-custom-response-with-url');
+const { replaceFirstPath } = require('./helpers/replace-first-path');
+const { getLanguageRegionPath } = require('./helpers/get-language-region-path');
+const { getLanguageRegion } = require('./helpers/get-language-region');
 
-const validateLanguageRegionCode = languageRegion => {
-    if (languageRegion.length !== 5) return false;
-
-    const languageCode = languageRegion.substring(0, 2).toLowerCase();
-    const countryCode = languageRegion.substring(3, 5).toLowerCase();
-
-    return languages.validate(languageCode) && countries.getName(countryCode) ? true : false;
-}
-
-const getCustomResponseWithUrl = url => ({
-    status: '302',
-    statusDescription: 'Found',
-    headers: {
-        location: [{
-            key: 'Location',
-            value: url,
-        }],
-        'cache-control': [{
-            key: 'Cache-Control',
-            value: "max-age=3600"
-        }],
-    },
-});
-
-const replaceFirstPath = (uri, languageRegion) => {
-    let splitPath = uri.split('/');
-    console.log('splitPath', splitPath);
-
-    const checkedPaths = splitPath.filter(e => !validateLanguageRegionCode(e));
-    console.log('checkedPaths', checkedPaths);
-    checkedPaths.unshift(languageRegion)
-
-    console.log('checkedPaths with unshift', checkedPaths);
-
-    const newPath = checkedPaths.map(e => e).join('/');
-
-    console.log('newPath', newPath);
-
-    return newPath;
-
-}
-
-const getLanguageRegionPath = (domainDefaultLanguage, domainDefaultCountry, languageRegion, path) => {
-
-    console.log('domainDefaultLanguage', domainDefaultLanguage);
-    console.log('domainDefaultCountry', domainDefaultCountry);
-    console.log('languageRegion', languageRegion);
-    console.log('path', path);
-
-    const domainDefaultLanguageRegion = `${domainDefaultLanguage.toLowerCase()}-${domainDefaultCountry.toLowerCase()}`;
-    if (path === '/') return languageRegion === domainDefaultLanguageRegion ? path : `/${languageRegion}`;
-    return languageRegion === domainDefaultLanguageRegion ? path : `/${replaceFirstPath(path, languageRegion)}`;
-}
-
-const getLanguageRegion = (tempLanguageCode, tempCountryCode, languageFallback, countryFallback) => {
-    if (languages.validate(tempLanguageCode)) { // Check valid codes
-        if (countries.getName(tempCountryCode)) {
-            const languageCode = languageConfig.some(language => language.code.toLowerCase() === tempLanguageCode && language.enabled === true) ? tempLanguageCode : languageFallback;  // Check language is enabled in config
-            const countryCode = countryConfig.some(country => country.code.toLowerCase() === tempCountryCode && country.enabled === true) ? tempCountryCode : countryFallback; // Check country is enabled in config
-
-            const languageRegion = `${languageCode}-${countryCode}`;
-
-            console.log('languageRegion in getLanguageRegion', languageRegion);
-
-            return languageRegion;
-
-        } else {
-            throw new Error(`Country Code '${tempCountryCode}' is invalid`);
-        }
-    } else {
-        throw new Error(`Language Code '${tempLanguageCode}' is invalid`);
-    }
-}
-
-exports.handler = (event, context, callback) => {
+exports.handler = async (event) => {
     const request = event.Records[0].cf.request;
 
     try {
@@ -94,7 +24,7 @@ exports.handler = (event, context, callback) => {
 
             // Paths to ignore such as data and images
             if (!uri || ignorePaths.some(path => uri.includes(path))) {
-                callback(null, request);
+                return request;
             }
 
             if (
@@ -111,7 +41,7 @@ exports.handler = (event, context, callback) => {
                 console.log('languageRegion in language-region-override', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);
                 const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
-                callback(null, modifiedRequest);
+                return modifiedRequest;
 
             } else if (
                 headers &&
@@ -136,7 +66,7 @@ exports.handler = (event, context, callback) => {
                 const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
                 console.log('modifiedRequest', modifiedRequest);
 
-                callback(null, modifiedRequest);
+                return modifiedRequest;
 
             } else {
                 const languageRegion = getLanguageRegion(languageFallbackString, countryFallbackString, languageFallbackString, countryFallbackString)
@@ -144,12 +74,12 @@ exports.handler = (event, context, callback) => {
                 console.log('languageRegion in fallback', languageRegion);
                 const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);
                 const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
-                callback(null, modifiedRequest);
+                return modifiedRequest;
             }
         }
 
     } catch (err) {
         console.error(err);
-        callback(null, request);
+        return request;
     }
 };
