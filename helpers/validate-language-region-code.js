@@ -1,3 +1,6 @@
+const languages = require('iso-639-1');
+const countries = require('country-list');
+
 const validateLanguageRegionCode = languageRegion => {
     if (languageRegion.length !== 5) return false;
 
