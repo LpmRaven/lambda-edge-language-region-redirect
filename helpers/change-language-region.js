@@ -16,7 +16,8 @@ const changeLanguageRegion = (uri, languageCode = languageFallback, countryCode 
         const domainDefaultCountryString = domainDefaultCountry.toLowerCase();
 
         const languageRegion = getLanguageRegion(languageConfig, countryConfig, languageCodeString, countryCodeString, languageFallbackString, countryFallbackString)
-        const modifiedUri = getLanguageRegionPath(domainDefaultLanguageString, domainDefaultCountryString, languageRegion, uri);
+        const domainDefaultLanguageRegion = getLanguageRegion(languageConfig, countryConfig, domainDefaultLanguageString, domainDefaultCountryString, languageFallbackString, countryFallbackString)
+        const modifiedUri = getLanguageRegionPath(domainDefaultLanguageRegion, languageRegion, uri);
         const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
 
         return modifiedRequest;
