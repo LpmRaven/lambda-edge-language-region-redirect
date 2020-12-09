@@ -92,7 +92,7 @@ describe('change-language-region', () => {
         expect(checkRequiredConfig).toHaveBeenNthCalledWith(1, { languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry });
         expect(getLanguageRegion).toHaveBeenNthCalledWith(1, languageConfig, countryConfig, 'fl', 'fc', 'fl', 'fc');
         expect(getLanguageRegion).toHaveBeenNthCalledWith(2, languageConfig, countryConfig, 'zl', 'zc', 'fl', 'fc');
-        expect(getLanguageRegionPath).toHaveBeenNthCalledWith(1, 'zl-zc', 'fl-fc', 'mockUrl');
+        expect(getLanguageRegionPath).toHaveBeenNthCalledWith(1, 'mockUrl', 'fl-fc', 'zl-zc');
         expect(getCustomResponseWithUrl).toHaveBeenNthCalledWith(1, "mockUrlPath");
         expect(result).toEqual(expectedResult);
     });
@@ -122,7 +122,7 @@ describe('change-language-region', () => {
         expect(checkRequiredConfig).toHaveBeenNthCalledWith(1, { languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry });
         expect(getLanguageRegion).toHaveBeenNthCalledWith(1, languageConfig, countryConfig, 'xl', 'xc', 'fl', 'fc');
         expect(getLanguageRegion).toHaveBeenNthCalledWith(2, languageConfig, countryConfig, 'zl', 'zc', 'fl', 'fc');
-        expect(getLanguageRegionPath).toHaveBeenNthCalledWith(1, 'zl-zc', 'xl-xc', 'mockUrl');
+        expect(getLanguageRegionPath).toHaveBeenNthCalledWith(1, 'mockUrl', 'xl-xc', 'zl-zc');
         expect(getCustomResponseWithUrl).toHaveBeenNthCalledWith(1, "mockUrlPath");
         expect(result).toEqual(expectedResult);
     });

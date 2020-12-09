@@ -42,10 +42,21 @@ exports.handler = async (event) => {
             const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
             const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
 
-            return changeLanguageRegion(uri, headerLanguageCode, headerCountryCode)
+            const languageRegion = changeLanguageRegion(uri, headerLanguageCode, headerCountryCode)
 
+            console.log('uri', uri);
+            console.log('languageRegion', languageRegion);
+            console.log(`headers['cloudfront-viewer-country'][0].value`, headers['cloudfront-viewer-country'][0].value);
+            console.log(`headers['accept-language'][0].value`, headers['accept-language'][0].value);
+
+            return languageRegion;
         } else {
-            return changeLanguageRegion(uri);
+            const languageRegion = changeLanguageRegion(uri);
+
+            console.log('uri', uri);
+            console.log('languageRegion', languageRegion);
+
+            return languageRegion;
         }
 
     } catch (err) {
