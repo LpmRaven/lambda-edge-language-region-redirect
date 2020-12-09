@@ -126,4 +126,12 @@ describe('change-language-region', () => {
         expect(getCustomResponseWithUrl).toHaveBeenNthCalledWith(1, "mockUrlPath");
         expect(result).toEqual(expectedResult);
     });
+
+    test('will not return with missing required config ', async () => {
+        checkRequiredConfig.mockImplementationOnce(() => false);
+
+        const result = await changeLanguageRegion('mockUrl');
+        expect(checkRequiredConfig).toHaveBeenNthCalledWith(1, { languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry });
+        expect(result).toEqual(undefined);
+    });
 })
