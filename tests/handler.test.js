@@ -305,6 +305,30 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
         expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri', "en", "gb");
         expect(result).toEqual("NEW_REQUEST")
     });
+
+    test('will call changeLanguageRegion with uri, headerLanguageCode and headerCountryCode if headers["cloudfront-viewer-country"][0].value are defined but with trimmed accept-language', async () => {
+        const mockEvent = { ...mockOriginRequestEvent };
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cloudfront-viewer-country': [
+                {
+                    "key": "Cloudfront-Viewer-Country",
+                    "value": "GB"
+                }
+            ],
+            'accept-language': [
+                {
+                    "key": "Accept-Language",
+                    "value": "EN-US"
+                }
+            ]
+        };
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
+
+        const result = await handler(mockEvent);
+        expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri', "en", "gb");
+        expect(result).toEqual("NEW_REQUEST")
+    });
 });
 
 describe('handler - will return origional request for missing URIs and ignore-paths', () => {
