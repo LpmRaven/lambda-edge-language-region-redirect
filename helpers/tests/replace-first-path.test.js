@@ -5,7 +5,7 @@ jest.mock('../validate-language-region-code', () => ({
     validateLanguageRegionCode: jest.fn()
 }));
 
-describe('check required fields', () => {
+describe('replace-first-path', () => {
 
     beforeEach(() => {
     });

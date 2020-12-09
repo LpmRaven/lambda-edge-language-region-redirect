@@ -5,7 +5,7 @@ jest.mock('../replace-first-path', () => ({
     replaceFirstPath: jest.fn()
 }));
 
-describe('check required fields', () => {
+describe('get-language-region-path', () => {
 
     beforeEach(() => {
     });

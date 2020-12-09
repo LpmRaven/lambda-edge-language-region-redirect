@@ -5,6 +5,105 @@ jest.mock('../helpers/change-language-region', () => ({
     changeLanguageRegion: jest.fn()
 }));
 
+describe('error logging', () => {
+    const OLD_CONSOLE = global.console;
+    let mockOriginRequestEvent;
+
+    beforeEach(() => {
+        jest.resetModules();
+        global.console = { ...OLD_CONSOLE }
+        mockOriginRequestEvent = {
+            "Records": [
+                {
+                    "cf": {
+                        "config": {
+                            "distributionDomainName": "d111111abcdef8.cloudfront.net",
+                            "distributionId": "EDFDVBD6EXAMPLE",
+                            "eventType": "origin-request",
+                            "requestId": "4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ=="
+                        },
+                        "request": {
+                            "clientIp": "203.0.113.178",
+                            "headers": {
+                                "x-forwarded-for": [
+                                    {
+                                        "key": "X-Forwarded-For",
+                                        "value": "203.0.113.178"
+                                    }
+                                ],
+                                "user-agent": [
+                                    {
+                                        "key": "User-Agent",
+                                        "value": "Amazon CloudFront"
+                                    }
+                                ],
+                                "via": [
+                                    {
+                                        "key": "Via",
+                                        "value": "2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)"
+                                    }
+                                ],
+                                "host": [
+                                    {
+                                        "key": "Host",
+                                        "value": "example.org"
+                                    }
+                                ],
+                                "cache-control": [
+                                    {
+                                        "key": "Cache-Control",
+                                        "value": "no-cache, cf-no-cache"
+                                    }
+                                ]
+                            },
+                            "method": "GET",
+                            "origin": {
+                                "custom": {
+                                    "customHeaders": {},
+                                    "domainName": "example.org",
+                                    "keepaliveTimeout": 5,
+                                    "path": "",
+                                    "port": 443,
+                                    "protocol": "https",
+                                    "readTimeout": 30,
+                                    "sslProtocols": [
+                                        "TLSv1",
+                                        "TLSv1.1",
+                                        "TLSv1.2"
+                                    ]
+                                }
+                            },
+                            "querystring": "",
+                            "uri": "/default-uri"
+                        }
+                    }
+                }
+            ]
+        }
+    });
+
+    afterEach(() => {
+        jest.resetAllMocks();
+        global.console = OLD_CONSOLE;
+
+    });
+
+    test('will log error and return origional request when an error is thrown', async () => {
+        global.console = {
+            log: jest.fn(),
+            info: jest.fn(),
+            error: jest.fn()
+        }
+        const mockEvent = { ...mockOriginRequestEvent };
+        changeLanguageRegion.mockImplementationOnce(() => { throw new Error('A required config variable <> is not defined') })
+
+        const result = await handler(mockEvent);
+        expect(global.console.error).toHaveBeenCalledWith(new Error("A required config variable <> is not defined"));
+        expect(result).toEqual(mockEvent.Records[0].cf.request)
+    });
+
+});
+
 describe('handler - headers.cookie["language-region-override"]', () => {
 
     beforeEach(() => {

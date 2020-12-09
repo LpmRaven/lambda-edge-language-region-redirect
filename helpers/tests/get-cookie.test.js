@@ -1,6 +1,6 @@
 const { getCookie } = require('../get-cookie');
 
-describe('check required fields', () => {
+describe('get-cookie', () => {
 
     beforeEach(() => {
     });

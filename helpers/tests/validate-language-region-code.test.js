@@ -10,7 +10,7 @@ jest.mock('country-list', () => ({
     getName: jest.fn()
 }));
 
-describe('check required fields', () => {
+describe('validate-language-region-code', () => {
 
     beforeEach(() => {
     });

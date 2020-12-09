@@ -1,6 +1,6 @@
 const { getCustomResponseWithUrl } = require('../get-custom-response-with-url');
 
-describe('check required fields', () => {
+describe('get-custom-response-with-url', () => {
 
     beforeEach(() => {
     });
