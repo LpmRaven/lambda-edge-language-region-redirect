@@ -1,8 +1,6 @@
 const { handler } = require('../handler');
 const { changeLanguageRegion } = require('../helpers/change-language-region');
 
-let { mockOriginRequestEvent } = require('./mock-origin-request-event');
-
 jest.mock('../helpers/change-language-region', () => ({
     changeLanguageRegion: jest.fn()
 }));
@@ -10,6 +8,7 @@ jest.mock('../helpers/change-language-region', () => ({
 describe('handler - headers.cookie["language-region-override"]', () => {
 
     beforeEach(() => {
+        jest.resetModules();
     });
 
     afterEach(() => {
@@ -17,7 +16,7 @@ describe('handler - headers.cookie["language-region-override"]', () => {
     });
 
     // test('', async () => {
-    //     let mockEvent = mockOriginRequestEvent;
+    //     const mockEvent = { ...mockOriginRequestEvent };
     //     mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
     // mockEvent.Records[0].cf.request.headers = {
     //     ...mockEvent.Records[0].cf.request.headers,
@@ -35,8 +34,77 @@ describe('handler - headers.cookie["language-region-override"]', () => {
 });
 
 describe('handler - headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value', () => {
+    let mockOriginRequestEvent;
 
     beforeEach(() => {
+        mockOriginRequestEvent = {
+            "Records": [
+                {
+                    "cf": {
+                        "config": {
+                            "distributionDomainName": "d111111abcdef8.cloudfront.net",
+                            "distributionId": "EDFDVBD6EXAMPLE",
+                            "eventType": "origin-request",
+                            "requestId": "4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ=="
+                        },
+                        "request": {
+                            "clientIp": "203.0.113.178",
+                            "headers": {
+                                "x-forwarded-for": [
+                                    {
+                                        "key": "X-Forwarded-For",
+                                        "value": "203.0.113.178"
+                                    }
+                                ],
+                                "user-agent": [
+                                    {
+                                        "key": "User-Agent",
+                                        "value": "Amazon CloudFront"
+                                    }
+                                ],
+                                "via": [
+                                    {
+                                        "key": "Via",
+                                        "value": "2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)"
+                                    }
+                                ],
+                                "host": [
+                                    {
+                                        "key": "Host",
+                                        "value": "example.org"
+                                    }
+                                ],
+                                "cache-control": [
+                                    {
+                                        "key": "Cache-Control",
+                                        "value": "no-cache, cf-no-cache"
+                                    }
+                                ]
+                            },
+                            "method": "GET",
+                            "origin": {
+                                "custom": {
+                                    "customHeaders": {},
+                                    "domainName": "example.org",
+                                    "keepaliveTimeout": 5,
+                                    "path": "",
+                                    "port": 443,
+                                    "protocol": "https",
+                                    "readTimeout": 30,
+                                    "sslProtocols": [
+                                        "TLSv1",
+                                        "TLSv1.1",
+                                        "TLSv1.2"
+                                    ]
+                                }
+                            },
+                            "querystring": "",
+                            "uri": "/default-uri"
+                        }
+                    }
+                }
+            ]
+        }
     });
 
     afterEach(() => {
@@ -44,7 +112,7 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
     });
 
     test('will call changeLanguageRegion with just uri if headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value are undefined', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.headers = {
             ...mockEvent.Records[0].cf.request.headers,
             'cloudfront-viewer-country': [
@@ -60,13 +128,15 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
                 }
             ]
         };
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
 
-        await handler(mockEvent);
+        const result = await handler(mockEvent);
         expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
+        expect(result).toEqual("NEW_REQUEST")
     });
 
     test('will call changeLanguageRegion with just uri if headers["accept-language"][0].value is undefined', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.headers = {
             ...mockEvent.Records[0].cf.request.headers,
             'cloudfront-viewer-country': [
@@ -82,13 +152,15 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
                 }
             ]
         };
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
 
-        await handler(mockEvent);
+        const result = await handler(mockEvent);
         expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
+        expect(result).toEqual("NEW_REQUEST")
     });
 
     test('will call changeLanguageRegion with just uri if headers["cloudfront-viewer-country"][0].value is undefined', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.headers = {
             ...mockEvent.Records[0].cf.request.headers,
             'cloudfront-viewer-country': [
@@ -104,15 +176,110 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
                 }
             ]
         };
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
 
-        await handler(mockEvent);
+        const result = await handler(mockEvent);
         expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri');
+        expect(result).toEqual("NEW_REQUEST")
+    });
+
+    test('will call changeLanguageRegion with uri, headerLanguageCode and headerCountryCode if headers["cloudfront-viewer-country"][0].value are defined', async () => {
+        const mockEvent = { ...mockOriginRequestEvent };
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cloudfront-viewer-country': [
+                {
+                    "key": "Cloudfront-Viewer-Country",
+                    "value": "GB"
+                }
+            ],
+            'accept-language': [
+                {
+                    "key": "Accept-Language",
+                    "value": "EN"
+                }
+            ]
+        };
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
+
+        const result = await handler(mockEvent);
+        expect(changeLanguageRegion).toHaveBeenCalledWith('/default-uri', "en", "gb");
+        expect(result).toEqual("NEW_REQUEST")
     });
 });
 
 describe('handler - will return origional request for missing URIs and ignore-paths', () => {
+    let mockOriginRequestEvent;
 
     beforeEach(() => {
+        mockOriginRequestEvent = {
+            "Records": [
+                {
+                    "cf": {
+                        "config": {
+                            "distributionDomainName": "d111111abcdef8.cloudfront.net",
+                            "distributionId": "EDFDVBD6EXAMPLE",
+                            "eventType": "origin-request",
+                            "requestId": "4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ=="
+                        },
+                        "request": {
+                            "clientIp": "203.0.113.178",
+                            "headers": {
+                                "x-forwarded-for": [
+                                    {
+                                        "key": "X-Forwarded-For",
+                                        "value": "203.0.113.178"
+                                    }
+                                ],
+                                "user-agent": [
+                                    {
+                                        "key": "User-Agent",
+                                        "value": "Amazon CloudFront"
+                                    }
+                                ],
+                                "via": [
+                                    {
+                                        "key": "Via",
+                                        "value": "2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)"
+                                    }
+                                ],
+                                "host": [
+                                    {
+                                        "key": "Host",
+                                        "value": "example.org"
+                                    }
+                                ],
+                                "cache-control": [
+                                    {
+                                        "key": "Cache-Control",
+                                        "value": "no-cache, cf-no-cache"
+                                    }
+                                ]
+                            },
+                            "method": "GET",
+                            "origin": {
+                                "custom": {
+                                    "customHeaders": {},
+                                    "domainName": "example.org",
+                                    "keepaliveTimeout": 5,
+                                    "path": "",
+                                    "port": 443,
+                                    "protocol": "https",
+                                    "readTimeout": 30,
+                                    "sslProtocols": [
+                                        "TLSv1",
+                                        "TLSv1.1",
+                                        "TLSv1.2"
+                                    ]
+                                }
+                            },
+                            "querystring": "",
+                            "uri": "/default-uri"
+                        }
+                    }
+                }
+            ]
+        }
     });
 
     afterEach(() => {
@@ -120,7 +287,8 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will not ignore valid uri', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
+
         const validUri = "/here-is-a-valid-uri";
         mockEvent.Records[0].cf.request.uri = validUri;
 
@@ -129,7 +297,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for undefined uri', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "";
 
         const result = await handler(mockEvent);
@@ -137,7 +305,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing "page-data"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/page-data";
 
         const result = await handler(mockEvent);
@@ -145,7 +313,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for and extended uri containing "page-data"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/here-is-a-url/with/page-data/in-the-middle";
 
         const result = await handler(mockEvent);
@@ -153,7 +321,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".json"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-file.json";
 
         const result = await handler(mockEvent);
@@ -161,7 +329,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".xml"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-file.xml";
 
         const result = await handler(mockEvent);
@@ -169,7 +337,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".css"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-file.css";
 
         const result = await handler(mockEvent);
@@ -177,7 +345,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".js"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-file.js";
 
         const result = await handler(mockEvent);
@@ -185,7 +353,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".jpg"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.jpg";
 
         const result = await handler(mockEvent);
@@ -193,7 +361,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".jpeg"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.jpg";
 
         const result = await handler(mockEvent);
@@ -201,7 +369,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".svg"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.svg";
 
         const result = await handler(mockEvent);
@@ -209,7 +377,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".png"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.png";
 
         const result = await handler(mockEvent);
@@ -217,7 +385,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".webp"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.webp";
 
         const result = await handler(mockEvent);
@@ -225,7 +393,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".jfif"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.jfif";
 
         const result = await handler(mockEvent);
@@ -233,7 +401,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".pjpeg"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.pjpeg";
 
         const result = await handler(mockEvent);
@@ -241,7 +409,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".pjp"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.pjp";
 
         const result = await handler(mockEvent);
@@ -249,7 +417,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".gif"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.gif";
 
         const result = await handler(mockEvent);
@@ -257,7 +425,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".avif"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.avif";
 
         const result = await handler(mockEvent);
@@ -265,7 +433,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
     });
 
     test('will return origional request for uri containing ".apng"', async () => {
-        let mockEvent = mockOriginRequestEvent;
+        const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/my-image-file.apng";
 
         const result = await handler(mockEvent);

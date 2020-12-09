@@ -7,13 +7,12 @@ const { getLanguageRegion } = require('./get-language-region');
 
 const changeLanguageRegion = (uri, languageCode = languageFallback, countryCode = countryFallback) => {
     if (checkRequiredConfig({ languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry })) { // country-config.js and language-config.js must be modified for your preferences
-
-        const languageCodeString = languageCode.toLowerCase();
-        const countryCodeString = countryCode.toLowerCase();
-        const languageFallbackString = languageFallback.toLowerCase();
-        const countryFallbackString = countryFallback.toLowerCase();
-        const domainDefaultLanguageString = domainDefaultLanguage.toLowerCase();
-        const domainDefaultCountryString = domainDefaultCountry.toLowerCase();
+        const languageCodeString = languageCode.toString().toLowerCase();
+        const countryCodeString = countryCode.toString().toLowerCase();
+        const languageFallbackString = languageFallback.toString().toLowerCase();
+        const countryFallbackString = countryFallback.toString().toLowerCase();
+        const domainDefaultLanguageString = domainDefaultLanguage.toString().toLowerCase();
+        const domainDefaultCountryString = domainDefaultCountry.toString().toLowerCase();
 
         const languageRegion = getLanguageRegion(languageConfig, countryConfig, languageCodeString, countryCodeString, languageFallbackString, countryFallbackString)
         const domainDefaultLanguageRegion = getLanguageRegion(languageConfig, countryConfig, domainDefaultLanguageString, domainDefaultCountryString, languageFallbackString, countryFallbackString)

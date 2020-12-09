@@ -14,20 +14,22 @@ exports.handler = async (event) => {
             return request;
         }
 
+        // if (
+        //     headers &&
+        //     headers.cookie &&
+        //     headers.cookie['language-region-override']
+        // ) {
+        //     console.log('cookie');
+
+        //     const cookie = getCookie(headers, 'language-region-override')
+        //     const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
+        //     const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
+
+        //     return changeLanguageRegion(uri, cookieLanguageCode, cookieCountryCode)
+
+        // } else
+
         if (
-            headers &&
-            headers.cookie &&
-            headers.cookie['language-region-override']
-        ) {
-            console.log('cookie');
-
-            const cookie = getCookie(headers, 'language-region-override')
-            const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
-            const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
-
-            return changeLanguageRegion(uri, cookieLanguageCode, cookieCountryCode)
-
-        } else if (
             headers &&
             headers['cloudfront-viewer-country'] &&
             headers['cloudfront-viewer-country'][0] &&
@@ -36,8 +38,6 @@ exports.handler = async (event) => {
             headers['accept-language'][0] &&
             headers['accept-language'][0].value
         ) {
-            console.log('headers');
-
             const headerCountryCode = headers['cloudfront-viewer-country'][0].value.toLowerCase();
             const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
             const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
@@ -45,14 +45,10 @@ exports.handler = async (event) => {
             return changeLanguageRegion(uri, headerLanguageCode, headerCountryCode)
 
         } else {
-            console.log('fallback');
-
             return changeLanguageRegion(uri);
         }
 
     } catch (err) {
-        console.log('error');
-
         console.error(err);
         return request;
     }

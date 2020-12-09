@@ -1,4 +1,14 @@
 const { getLanguageRegion } = require('../get-language-region');
+const languages = require('iso-639-1');
+const countries = require('country-list');
+
+jest.mock('iso-639-1', () => ({
+    validate: jest.fn()
+}));
+
+jest.mock('country-list', () => ({
+    getName: jest.fn()
+}));
 
 describe('check required fields', () => {
 
