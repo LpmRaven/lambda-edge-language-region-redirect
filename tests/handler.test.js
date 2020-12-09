@@ -84,6 +84,7 @@ describe('error logging', () => {
 
     afterEach(() => {
         jest.resetAllMocks();
+        jest.restoreAllMocks();
         global.console = OLD_CONSOLE;
 
     });
@@ -112,6 +113,7 @@ describe('handler - headers.cookie["language-region-override"]', () => {
 
     afterEach(() => {
         jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     // test('', async () => {
@@ -208,6 +210,7 @@ describe('handler - headers["accept-language"][0].value and headers["cloudfront-
 
     afterEach(() => {
         jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     test('will call changeLanguageRegion with just uri if headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value are undefined', async () => {
@@ -407,6 +410,7 @@ describe('handler - will return origional request for missing URIs and ignore-pa
 
     afterEach(() => {
         jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     test('will not ignore valid uri', async () => {

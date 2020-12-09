@@ -227,7 +227,7 @@ const languageConfig = [
         "code": "en",
         "name": "English",
         "nativeName": "English",
-        "enabled": false
+        "enabled": true
     },
     {
         "code": "eo",
