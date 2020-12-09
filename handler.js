@@ -1,3 +1,4 @@
+const path = require('path');
 const { ignorePaths } = require('./ignore-paths')
 const { changeLanguageRegion } = require('./helpers/change-language-region');
 const { getCookie } = require('./helpers/get-cookie');
@@ -8,9 +9,10 @@ exports.handler = async (event) => {
     try {
         const headers = request.headers;
         const uri = request.uri;
+        const parsedPath = path.parse(request.uri);
 
         // Paths to ignore such as data and images
-        if (!uri || ignorePaths.some(path => uri.includes(path))) {
+        if (!uri || !parsedPath || parsedPath.ext !== '' || ignorePaths.some(path => uri.includes(path))) {
             return request;
         }
 
