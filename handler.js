@@ -11,6 +11,10 @@ exports.handler = async (event) => {
         const uri = request.uri;
         const parsedPath = path.parse(request.uri);
 
+        console.log('uri', uri);
+        console.log('parsedPath', parsedPath);
+
+
         // Paths to ignore such as data and images
         if (!uri || !parsedPath || parsedPath.ext !== '' || ignorePaths.some(path => uri.includes(path))) {
             return request;
