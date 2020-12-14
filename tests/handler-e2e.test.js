@@ -82,7 +82,7 @@ describe('handler - headers.cookie["language-region-override"]', () => {
 
     test('will return correct request for root domain with valid headers', async () => {
         const mockEvent = { ...mockOriginRequestEvent };
-        const uri = "/";
+        const uri = "/index.html";
         mockEvent.Records[0].cf.request.uri = uri;
         mockEvent.Records[0].cf.request.headers = {
             ...mockEvent.Records[0].cf.request.headers,

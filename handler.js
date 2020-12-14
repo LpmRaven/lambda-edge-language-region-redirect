@@ -16,7 +16,12 @@ exports.handler = async (event) => {
 
 
         // Paths to ignore such as data and images
-        if (!uri || !parsedPath || parsedPath.ext !== '' || ignorePaths.some(path => uri.includes(path))) {
+        if (
+            !uri ||
+            !parsedPath ||
+            parsedPath.ext !== '' && uri !== '/index.html' ||
+            ignorePaths.some(path => uri.includes(path))
+        ) {
             return request;
         }
 
