@@ -32,13 +32,11 @@ exports.handler = async (event) => {
             const cookies = new Cookies(headers.cookie);
             cookie = cookies.get('language-region-override');
         }
-        console.log('cookie content', cookie);
-
 
         if (
             cookie
         ) {
-            console.log('cookie');
+            console.log('cookie', cookie);
             const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
             const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
 
