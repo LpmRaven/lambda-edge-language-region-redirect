@@ -1,7 +1,6 @@
 const path = require('path');
 const { ignorePaths } = require('./ignore-paths')
 const { changeLanguageRegion } = require('./helpers/change-language-region');
-const { getCookie } = require('./helpers/get-cookie');
 const Cookies = require('universal-cookie');
 
 
