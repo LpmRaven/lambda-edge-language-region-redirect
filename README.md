@@ -6,12 +6,12 @@ THIS REPO IS CURRENTLY A WORK IN PROGRESS.
 
 Redirects users to localised content.
 
-The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'
+The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'. Consistent behaviour can be created using a `language-region-override` cookie, allowing users to set their preference.
 
 ### Usercases
 
-- English speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/en-eu/*
-- French speaking user browsing from within the EU will be redirected to https://<span></span>your-site.com/fr-eu/*
+- English speaking user browsing from within the US will be redirected to https://<span></span>your-site.com/en-us/*
+- French speaking user browsing from within the US will be redirected to https://<span></span>your-site.com/fr-us/*
 - English speaking user browsing from within Great Britain will be redirected to https://<span></span>your-site.com/en-gb/*
 - French speaking user browsing from within Great Britain will be redirected to https://<span></span>your-site.com/fr-gb/*
 

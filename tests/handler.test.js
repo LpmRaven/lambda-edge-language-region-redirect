@@ -1,5 +1,8 @@
 const { handler } = require('../handler');
 const { changeLanguageRegion } = require('../helpers/change-language-region');
+const Cookies = require('universal-cookie');
+
+jest.mock('universal-cookie');
 
 jest.mock('../helpers/change-language-region', () => ({
     changeLanguageRegion: jest.fn()
@@ -106,9 +109,77 @@ describe('error logging', () => {
 });
 
 describe('handler - headers.cookie["language-region-override"]', () => {
-
+    let mockOriginRequestEvent;
     beforeEach(() => {
         jest.resetModules();
+        mockOriginRequestEvent = {
+            "Records": [
+                {
+                    "cf": {
+                        "config": {
+                            "distributionDomainName": "d111111abcdef8.cloudfront.net",
+                            "distributionId": "EDFDVBD6EXAMPLE",
+                            "eventType": "origin-request",
+                            "requestId": "4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ=="
+                        },
+                        "request": {
+                            "clientIp": "203.0.113.178",
+                            "headers": {
+                                "x-forwarded-for": [
+                                    {
+                                        "key": "X-Forwarded-For",
+                                        "value": "203.0.113.178"
+                                    }
+                                ],
+                                "user-agent": [
+                                    {
+                                        "key": "User-Agent",
+                                        "value": "Amazon CloudFront"
+                                    }
+                                ],
+                                "via": [
+                                    {
+                                        "key": "Via",
+                                        "value": "2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)"
+                                    }
+                                ],
+                                "host": [
+                                    {
+                                        "key": "Host",
+                                        "value": "example.org"
+                                    }
+                                ],
+                                "cache-control": [
+                                    {
+                                        "key": "Cache-Control",
+                                        "value": "no-cache, cf-no-cache"
+                                    }
+                                ]
+                            },
+                            "method": "GET",
+                            "origin": {
+                                "custom": {
+                                    "customHeaders": {},
+                                    "domainName": "example.org",
+                                    "keepaliveTimeout": 5,
+                                    "path": "",
+                                    "port": 443,
+                                    "protocol": "https",
+                                    "readTimeout": 30,
+                                    "sslProtocols": [
+                                        "TLSv1",
+                                        "TLSv1.1",
+                                        "TLSv1.2"
+                                    ]
+                                }
+                            },
+                            "querystring": "",
+                            "uri": "/default-uri"
+                        }
+                    }
+                }
+            ]
+        }
     });
 
     afterEach(() => {
@@ -116,22 +187,62 @@ describe('handler - headers.cookie["language-region-override"]', () => {
         jest.restoreAllMocks();
     });
 
-    // test('', async () => {
-    //     const mockEvent = { ...mockOriginRequestEvent };
-    //     mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
-    // mockEvent.Records[0].cf.request.headers = {
-    //     ...mockEvent.Records[0].cf.request.headers,
-    //     'cookie': [
-    //         {
-    //             "key": "language-region-override",
-    //             "value": "EN-GB"
-    //         }
-    //     ]
-    // };
+    test('will call Cookies library with cookie headers', async () => {
+        const mockEvent = { ...mockOriginRequestEvent };
+        mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cookie': [
+                {
+                    "key": "language-region-override",
+                    "value": "EN-GB"
+                }
+            ]
+        };
 
-    //     const result = await handler(mockEvent);
-    //expect(result).toEqual(getCustomResponseWithUrl("/en-gb/here-is-a-valid-uri"));
-    // });
+        // constructor response
+        const CookiesResponse = {
+            get: jest.fn(),
+        }
+        Cookies.mockImplementation(() => CookiesResponse)
+
+        const result = await handler(mockEvent);
+
+        expect(Cookies).toHaveBeenCalledTimes(1);
+        expect(Cookies).toHaveBeenCalledWith([
+            {
+                "key": "language-region-override",
+                "value": "EN-GB"
+            }
+        ]);
+        expect(CookiesResponse.get).toHaveBeenCalledWith('language-region-override');
+        expect(CookiesResponse.get).toHaveBeenCalledTimes(1);
+    });
+
+    test('will use the cookie to set the correct url', async () => {
+        const mockEvent = { ...mockOriginRequestEvent };
+        mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
+        mockEvent.Records[0].cf.request.headers = {
+            ...mockEvent.Records[0].cf.request.headers,
+            'cookie': [
+                {
+                    "key": "language-region-override",
+                    "value": "EN-GB"
+                }
+            ]
+        };
+
+        // constructor response
+        const CookiesResponse = {
+            get: () => "EN-GB",
+        }
+        Cookies.mockImplementation(() => CookiesResponse)
+        changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
+
+        const result = await handler(mockEvent);
+        expect(changeLanguageRegion).toHaveBeenCalledWith('/here-is-a-valid-uri', "eb", "gb");
+        expect(result).toEqual("NEW_REQUEST");
+    });
 });
 
 describe('handler - headers["accept-language"][0].value and headers["cloudfront-viewer-country"][0].value', () => {

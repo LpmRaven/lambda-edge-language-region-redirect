@@ -2,6 +2,8 @@ const path = require('path');
 const { ignorePaths } = require('./ignore-paths')
 const { changeLanguageRegion } = require('./helpers/change-language-region');
 const { getCookie } = require('./helpers/get-cookie');
+const Cookies = require('universal-cookie');
+
 
 exports.handler = async (event) => {
     const request = event.Records[0].cf.request;
@@ -25,22 +27,24 @@ exports.handler = async (event) => {
             return request;
         }
 
-        // if (
-        //     headers &&
-        //     headers.cookie &&
-        //     headers.cookie['language-region-override']
-        // ) {
-        //     console.log('cookie');
+        let cookie;
+        if (headers.cookie) {
+            const cookies = new Cookies(headers.cookie);
+            cookie = cookies.get('language-region-override');
+        }
+        console.log('cookie content', cookie);
 
-        //     const cookie = getCookie(headers, 'language-region-override')
-        //     const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
-        //     const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
-
-        //     return changeLanguageRegion(uri, cookieLanguageCode, cookieCountryCode)
-
-        // } else
 
         if (
+            cookie
+        ) {
+            console.log('cookie');
+            const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
+            const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
+
+            return changeLanguageRegion(uri, cookieLanguageCode, cookieCountryCode)
+
+        } else if (
             headers &&
             headers['cloudfront-viewer-country'] &&
             headers['cloudfront-viewer-country'][0] &&

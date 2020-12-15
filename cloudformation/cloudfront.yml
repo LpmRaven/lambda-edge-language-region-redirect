@@ -188,6 +188,7 @@ Resources:
     Properties:
       DistributionConfig:
         # ...all your other distribution config
+        DefaultRootObject: index.html
         DefaultCacheBehavior:
           LambdaFunctionAssociations:
             - EventType: origin-request

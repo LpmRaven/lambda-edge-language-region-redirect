@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "country-list": "^2.2.0",
-    "iso-639-1": "^2.1.4"
+    "iso-639-1": "^2.1.4",
+    "universal-cookie": "^4.0.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.8",
