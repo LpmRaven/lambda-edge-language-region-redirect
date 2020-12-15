@@ -1,7 +1,5 @@
 # Lambda@Edge Language-Region Redirect
 
-THIS REPO IS CURRENTLY A WORK IN PROGRESS.
-
 ## What does it do?
 
 Redirects users to localised content.

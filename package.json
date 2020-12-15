@@ -1,6 +1,6 @@
 {
   "name": "lambda-edge-language-region-redirect",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "test": "jest --verbose --coverage && npm run lint",
     "jest": "jest --watch",
