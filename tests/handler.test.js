@@ -1,7 +1,6 @@
 const { handler } = require('../handler');
 const { changeLanguageRegion } = require('../helpers/change-language-region');
 const { parseCookie } = require('../helpers/parse-cookie');
-const Cookies = require('universal-cookie');
 
 jest.mock('../helpers/parse-cookie', () => ({
     parseCookie: jest.fn()
