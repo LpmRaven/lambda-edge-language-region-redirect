@@ -26,6 +26,8 @@ exports.handler = async (event) => {
             return request;
         }
 
+        console.log('headers.cookie');
+
         let cookie;
         if (headers.cookie) {
             const cookies = new Cookies(headers.cookie);
