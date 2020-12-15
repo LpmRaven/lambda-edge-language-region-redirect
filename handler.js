@@ -31,6 +31,7 @@ exports.handler = async (event) => {
             const cookies = new Cookies(headers.cookie);
             cookie = cookies.get('language-region-override');
         }
+        console.log('cookie outside', cookie);
 
         if (
             cookie
