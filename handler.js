@@ -1,8 +1,7 @@
 const path = require('path');
 const { ignorePaths } = require('./ignore-paths')
 const { changeLanguageRegion } = require('./helpers/change-language-region');
-const Cookies = require('universal-cookie');
-
+const { parseCookie } = require('./helpers/parse-cookie');
 
 exports.handler = async (event) => {
     const request = event.Records[0].cf.request;
@@ -30,8 +29,8 @@ exports.handler = async (event) => {
 
         let cookie;
         if (headers.cookie) {
-            const cookies = new Cookies(headers.cookie);
-            cookie = cookies.get('language-region-override');
+            const parsedCookies = parseCookie(headers.cookie);
+            cookie = parsedCookies ? parsedCookies['language-region-override'] : undefined;
         }
         console.log('cookie outside', cookie);
 

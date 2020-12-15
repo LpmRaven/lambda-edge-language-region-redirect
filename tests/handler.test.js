@@ -1,9 +1,11 @@
 const { handler } = require('../handler');
 const { changeLanguageRegion } = require('../helpers/change-language-region');
+const { parseCookie } = require('../helpers/parse-cookie');
 const Cookies = require('universal-cookie');
 
-jest.mock('universal-cookie');
-
+jest.mock('../helpers/parse-cookie', () => ({
+    parseCookie: jest.fn()
+}));
 jest.mock('../helpers/change-language-region', () => ({
     changeLanguageRegion: jest.fn()
 }));
@@ -187,36 +189,28 @@ describe('handler - headers.cookie["language-region-override"]', () => {
         jest.restoreAllMocks();
     });
 
-    test('will call Cookies library with cookie headers', async () => {
+    test('will call parseCookie with cookie headers', async () => {
         const mockEvent = { ...mockOriginRequestEvent };
         mockEvent.Records[0].cf.request.uri = "/here-is-a-valid-uri";
         mockEvent.Records[0].cf.request.headers = {
             ...mockEvent.Records[0].cf.request.headers,
             'cookie': [
                 {
-                    "key": "language-region-override",
-                    "value": "EN-GB"
+                    "key": "Cookie",
+                    "value": "language-region-override=EN-GB"
                 }
             ]
         };
 
-        // constructor response
-        const CookiesResponse = {
-            get: jest.fn(),
-        }
-        Cookies.mockImplementation(() => CookiesResponse)
-
         const result = await handler(mockEvent);
 
-        expect(Cookies).toHaveBeenCalledTimes(1);
-        expect(Cookies).toHaveBeenCalledWith([
+        expect(parseCookie).toHaveBeenCalledTimes(1);
+        expect(parseCookie).toHaveBeenCalledWith([
             {
-                "key": "language-region-override",
-                "value": "EN-GB"
+                "key": "Cookie",
+                "value": "language-region-override=EN-GB"
             }
         ]);
-        expect(CookiesResponse.get).toHaveBeenCalledWith('language-region-override');
-        expect(CookiesResponse.get).toHaveBeenCalledTimes(1);
     });
 
     test('will use the cookie to set the correct url', async () => {
@@ -226,21 +220,18 @@ describe('handler - headers.cookie["language-region-override"]', () => {
             ...mockEvent.Records[0].cf.request.headers,
             'cookie': [
                 {
-                    "key": "language-region-override",
-                    "value": "EN-GB"
+                    "key": "Cookie",
+                    "value": "language-region-override=EN-GB"
                 }
             ]
         };
-
-        // constructor response
-        const CookiesResponse = {
-            get: () => "EN-GB",
-        }
-        Cookies.mockImplementation(() => CookiesResponse)
+        parseCookie.mockImplementationOnce(() => ({
+            "language-region-override": "EN-GB"
+        }))
         changeLanguageRegion.mockImplementationOnce(() => "NEW_REQUEST")
 
         const result = await handler(mockEvent);
-        expect(changeLanguageRegion).toHaveBeenCalledWith('/here-is-a-valid-uri', "eb", "gb");
+        expect(changeLanguageRegion).toHaveBeenCalledWith('/here-is-a-valid-uri', "en", "gb");
         expect(result).toEqual("NEW_REQUEST");
     });
 });
