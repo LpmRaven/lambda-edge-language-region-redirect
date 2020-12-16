@@ -41,7 +41,7 @@ exports.handler = async (event) => {
             const cookieCountryCode = cookie.substring(3, 5).toLowerCase();
             const cookieLanguageCode = cookie.substring(0, 2).toLowerCase();
 
-            return changeLanguageRegion(uri, cookieLanguageCode, cookieCountryCode)
+            return changeLanguageRegion(request, uri, cookieLanguageCode, cookieCountryCode)
 
         } else if (
             headers &&
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
             const acceptLanguage = headers['accept-language'][0].value.toLowerCase();
             const headerLanguageCode = acceptLanguage.length > 2 ? acceptLanguage.substring(0, 2) : acceptLanguage;
 
-            const languageRegion = changeLanguageRegion(uri, headerLanguageCode, headerCountryCode)
+            const languageRegion = changeLanguageRegion(request, uri, headerLanguageCode, headerCountryCode)
 
             console.log('uri', uri);
             console.log('languageRegion', languageRegion);
@@ -65,7 +65,7 @@ exports.handler = async (event) => {
 
             return languageRegion;
         } else {
-            const languageRegion = changeLanguageRegion(uri);
+            const languageRegion = changeLanguageRegion(request, uri);
 
             console.log('uri', uri);
             console.log('languageRegion', languageRegion);

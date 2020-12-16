@@ -5,7 +5,7 @@ const { getCustomResponseWithUrl } = require('./get-custom-response-with-url');
 const { getLanguageRegionPath } = require('./get-language-region-path');
 const { getLanguageRegion } = require('./get-language-region');
 
-const changeLanguageRegion = (uri, languageCode = languageFallback, countryCode = countryFallback) => {
+const changeLanguageRegion = (request, uri, languageCode = languageFallback, countryCode = countryFallback) => {
     if (checkRequiredConfig({ languageFallback, countryFallback, domainDefaultLanguage, domainDefaultCountry })) { // country-config.js and language-config.js must be modified for your preferences
         const languageCodeString = languageCode.toString().toLowerCase();
         const countryCodeString = countryCode.toString().toLowerCase();
@@ -17,7 +17,9 @@ const changeLanguageRegion = (uri, languageCode = languageFallback, countryCode 
         const languageRegion = getLanguageRegion(languageConfig, countryConfig, languageCodeString, countryCodeString, languageFallbackString, countryFallbackString)
         const domainDefaultLanguageRegion = getLanguageRegion(languageConfig, countryConfig, domainDefaultLanguageString, domainDefaultCountryString, languageFallbackString, countryFallbackString)
         const modifiedUri = getLanguageRegionPath(uri, languageRegion, domainDefaultLanguageRegion);
-        const modifiedRequest = getCustomResponseWithUrl(modifiedUri);
+        const modifiedRequest = getCustomResponseWithUrl(request, modifiedUri);
+
+        console.log('modifiedRequest', modifiedRequest.origin.custom);
 
         return modifiedRequest;
     }

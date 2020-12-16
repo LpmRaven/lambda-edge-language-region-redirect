@@ -1,6 +1,6 @@
 const path = require('path');
 
-const getCustomResponseWithUrl = uri => {
+const getCustomResponseWithUrl = (request, uri) => {
     const parsedPath = path.parse(uri);
     let newUri;
     if (parsedPath.base !== 'index.html') { // Allows you to specify index.html as default root object in CloudFront
@@ -11,9 +11,11 @@ const getCustomResponseWithUrl = uri => {
 
     return (
         {
+            ...request,
             status: '200',
             statusDescription: 'OK',
             headers: {
+                ...request.headers,
                 // location: [{
                 //     key: 'Location',
                 //     value: newUri,
@@ -26,6 +28,7 @@ const getCustomResponseWithUrl = uri => {
             //uri: newUri
             "origin": {
                 "custom": {
+                    ...request.origin.custom,
                     "path": newUri
                 }
             },
