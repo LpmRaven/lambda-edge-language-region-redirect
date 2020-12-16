@@ -23,6 +23,7 @@ const getCustomResponseWithUrl = uri => {
                     value: "max-age=3600"
                 }],
             },
+            uri: newUri
         }
     )
 };
