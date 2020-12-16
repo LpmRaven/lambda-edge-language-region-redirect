@@ -25,11 +25,12 @@ const getCustomResponseWithUrl = (request, uri) => {
                     value: "max-age=3600"
                 }],
             },
-            //uri: newUri
+            uri: newUri,
             "origin": {
                 "custom": {
                     ...request.origin.custom,
-                    "path": newUri
+                    "path": newUri,
+                    "protocol": "https"
                 }
             },
         }
