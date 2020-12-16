@@ -28,9 +28,10 @@ const getCustomResponseWithUrl = (request, uri) => {
             uri: newUri,
             "origin": {
                 "custom": {
-                    ...request.origin.custom,
+                    "customHeaders": request.origin.custom.customHeaders ? request.origin.custom.customHeaders : {},
+                    "domainName": request.origin.custom.domainName,
                     "path": newUri,
-                    "protocol": "https"
+                    "authMethod": "none"
                 }
             },
         }
