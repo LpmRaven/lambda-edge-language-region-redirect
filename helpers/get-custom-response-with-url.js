@@ -14,16 +14,21 @@ const getCustomResponseWithUrl = uri => {
             status: '200',
             statusDescription: 'OK',
             headers: {
-                location: [{
-                    key: 'Location',
-                    value: newUri,
-                }],
+                // location: [{
+                //     key: 'Location',
+                //     value: newUri,
+                // }],
                 'cache-control': [{
                     key: 'Cache-Control',
                     value: "max-age=3600"
                 }],
             },
-            uri: newUri
+            //uri: newUri
+            "origin": {
+                "custom": {
+                    "path": newUri
+                }
+            },
         }
     )
 };
