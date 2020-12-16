@@ -12,19 +12,6 @@ const getCustomResponseWithUrl = (request, uri) => {
     return (
         {
             ...request,
-            status: '200',
-            statusDescription: 'OK',
-            headers: {
-                ...request.headers,
-                // location: [{
-                //     key: 'Location',
-                //     value: newUri,
-                // }],
-                'cache-control': [{
-                    key: 'Cache-Control',
-                    value: "max-age=3600"
-                }],
-            },
             uri: newUri
         }
     )
