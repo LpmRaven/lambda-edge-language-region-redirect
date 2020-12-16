@@ -25,15 +25,7 @@ const getCustomResponseWithUrl = (request, uri) => {
                     value: "max-age=3600"
                 }],
             },
-            uri: newUri,
-            "origin": {
-                "custom": {
-                    "customHeaders": request.origin.custom.customHeaders ? request.origin.custom.customHeaders : {},
-                    "domainName": request.origin.custom.domainName,
-                    "path": newUri,
-                    "authMethod": "none"
-                }
-            },
+            uri: newUri
         }
     )
 };
