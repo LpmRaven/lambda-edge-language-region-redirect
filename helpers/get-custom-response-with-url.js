@@ -11,8 +11,8 @@ const getCustomResponseWithUrl = uri => {
 
     return (
         {
-            status: '302',
-            statusDescription: 'Found',
+            status: '200',
+            statusDescription: 'OK',
             headers: {
                 location: [{
                     key: 'Location',
