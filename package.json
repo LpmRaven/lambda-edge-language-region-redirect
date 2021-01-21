@@ -12,7 +12,7 @@
     "aws",
     "lambda",
     "lambda@edge",
-    "cloudfront",
+    "cloudfront"
   ],
   "scripts": {
     "test": "jest --verbose --coverage && npm run lint",
