@@ -1,6 +1,19 @@
 {
   "name": "lambda-edge-language-region-redirect",
+  "description": "An origin request AWS Lambda@Edge to redirect users to localised content",
   "version": "1.0.0",
+  "main": "handler.js",
+  "author": "Liam Raven <liamraven@gmail.com>",
+  "repository": "https://github.com/LpmRaven/lambda-edge-language-region-redirect",
+  "license": "MIT",
+  "keywords": [
+    "serverless",
+    "nodejs",
+    "aws",
+    "lambda",
+    "lambda@edge",
+    "cloudfront",
+  ],
   "scripts": {
     "test": "jest --verbose --coverage && npm run lint",
     "jest": "jest --watch",
