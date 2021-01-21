@@ -1,8 +1,8 @@
 # Lambda@Edge Language-Region Redirect
 
-## What does it do?
+An origin request AWS Lambda@Edge to redirect users to localised content.
 
-Redirects users to localised content.
+## What does it do?
 
 The language-region-redirect lambda@edge will redirect users to approved Web URIs that include a language-region path. eg. '/en-gb' '/en-eu' '/fr-eu'. Consistent behaviour can be created using a `language-region-override` cookie, allowing users to set their preference.
 
